@@ -2,4 +2,5 @@
 from django.http import HttpResponse
 
 def index(request):
-    return HttpResponse("Hello, world!")
+	template = loader.get_template('index.html')
+	return HttpResponse("Hello, world!")
