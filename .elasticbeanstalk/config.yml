@@ -2,6 +2,9 @@ branch-defaults:
   default:
     environment: django-env
     group_suffix: null
+  master:
+    environment: flask-env-jer
+    group_suffix: null
 global:
   application_name: django-tutorial
   branch: null
