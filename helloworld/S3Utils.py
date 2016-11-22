@@ -1,6 +1,8 @@
 import boto3
+import zipfile
 
-s3 = boto3.resource('s3')
+s3res = boto3.resource('s3')
+s3cli = boto3.client('s3')
 
 def printBuckets():
 	for bucket in s3.buckets.all():
@@ -8,12 +10,17 @@ def printBuckets():
 
 def addPicture(filename):
 	data = open(filename, 'rb')
-	s3.Bucket('pictureeventjn').put_object(Key=filename, Body=data)
+	s3res.Bucket('pictureeventjn').put_object(Key=filename, Body=data)
 
 def listPictures(event_id):
-	for object in s3.Bucket('pictureeventjn').objects.all():
-		if object.key.split('/')[1] == event_id:
-			print(object.key.split('/')[2])
-			boto3.client('s3').download_file('pictureeventjn', object.key, 'tmp/' + object.key.split('/')[2])
-			open('tmp/' + object.key.split('/')[2]).read()
+	zf = zipfile.ZipFile('archive.zip', mode='w')
+	try:
+		for object in s3res.Bucket('pictureeventjn').objects.all():
+			if object.key.split('/')[1] == event_id:
+				print(object.key.split('/')[2])
+				s3cli.download_file('pictureeventjn', object.key, 'tmp/' + object.key.split('/')[2])
+				zf.write('tmp/' + object.key.split('/')[2])
+	finally:
+		zf.close()
+	
 
