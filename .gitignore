@@ -1,2 +1,4 @@
 
 # Elastic Beanstalk Files
+
+*.pyc
