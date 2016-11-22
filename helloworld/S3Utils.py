@@ -10,7 +10,8 @@ def printBuckets():
 
 def addPicture(filename):
 	data = open(filename, 'rb')
-	s3res.Bucket('pictureeventjn').put_object(Key=filename, Body=data)
+	s3res.Bucket('pictureeventjn').put_object(Key=filename, Body=data)#TODO
+	#async, delete filename when done
 
 def listPictures(event_id):
 	zf = zipfile.ZipFile('archive.zip', mode='w')
