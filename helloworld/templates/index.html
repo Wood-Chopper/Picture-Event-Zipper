@@ -1,3 +1,6 @@
 <h1>Picture-Event</h1>
 
-<button type="button">Create event</button>
+<form method='post' enctype="multipart/form-data">{% csrf_token %}
+
+	<input type="submit" value="Create event">
+</form>

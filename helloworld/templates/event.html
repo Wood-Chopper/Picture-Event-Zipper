@@ -10,8 +10,12 @@
 
 <button type="button">Download zip of the event</button>
 
-
+<br/>
 
 {% if filename %}
-    {{ filename }}
+    {{ filename }} uploaded
 {% endif %}
+
+<script>
+	document.getElementById("id_file").setAttribute("accept", ".zip,image/*");
+</script>

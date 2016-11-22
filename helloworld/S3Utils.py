@@ -8,4 +8,4 @@ def printBuckets():
 
 def addPicture(filename):
 	data = open(filename, 'rb')
-	s3.Bucket('jeromenavezpictureevent').put_object(Key=filename, Body=data)
+	s3.Bucket('pictureeventjn').put_object(Key=filename, Body=data)
