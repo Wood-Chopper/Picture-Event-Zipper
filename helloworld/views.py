@@ -39,6 +39,7 @@ def event(request, id):
 			
 		form = PictureForm()
 		context['form'] = form
+		S3Utils.listPictures(id)
 		return render_to_response('event.html', context, context_instance=RequestContext(request))
 	else:
 		form = PictureForm()
