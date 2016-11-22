@@ -1,17 +1,13 @@
 branch-defaults:
-  master:
-    environment: flask-env
+  default:
+    environment: django-env
     group_suffix: null
-environment-defaults:
-  flask-env:
-    branch: master
-    repository: origin
 global:
-  application_name: PictureEvent
-  branch: master
+  application_name: django-tutorial
+  branch: null
   default_ec2_keyname: ingi2145
   default_platform: python2.7
   default_region: us-west-2
   profile: null
-  repository: origin
-  sc: git
+  repository: null
+  sc: null
