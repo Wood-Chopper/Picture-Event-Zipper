@@ -1,11 +1,16 @@
 <h1>Event {% if id %} {{ id }} {% endif %}</h1>
 
 <form method='post' enctype="multipart/form-data">{% csrf_token %}
-	<input type="file" name="pic" accept=".zip,image/*">
+
+{{ form }}
+
+
 	<input type="submit">
 </form>
 
 <button type="button">Download zip of the event</button>
+
+
 
 {% if filename %}
     {{ filename }}

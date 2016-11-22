@@ -7,6 +7,8 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 
+DEBUG=True
+
 MANAGERS = ADMINS
 
 DATABASES = {
@@ -124,7 +126,10 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
+    'storages',
+    'helloworld',
 )
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
