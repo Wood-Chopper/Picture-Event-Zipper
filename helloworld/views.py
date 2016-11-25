@@ -88,7 +88,7 @@ def write_file(path, file):
 def get_link():
 	random = randomString(20)
 	if not os.path.exists('upload/'+random+'/'):
-		os.mkdir('upload/'+random+'/')
+		os.makedirs('upload/'+random+'/')#makedirs
 		return random
 	else:
 		return get_link()
