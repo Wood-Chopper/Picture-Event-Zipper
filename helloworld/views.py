@@ -7,6 +7,7 @@ from django.shortcuts import render_to_response
 from django.shortcuts import redirect
 from django.template import RequestContext
 from forms import PictureForm
+from django.http import StreamingHttpResponse
 import boto3
 import S3Utils
 import os
@@ -16,11 +17,9 @@ import zipfile
 
 def index(request):
 	if request.method == 'POST':
-		print('ici')
 		event_id = get_link()
 		return redirect('/event/'+event_id)
 	else:
-		print('là')
 		return render_to_response('index.html', context_instance=RequestContext(request))
 
 def event(request, id):
@@ -45,6 +44,15 @@ def event(request, id):
 		form = PictureForm()
 		context['form'] = form
 		return render_to_response('event.html', context, context_instance=RequestContext(request))
+
+def archive(request, id):
+	print('archive')
+	localpath = S3Utils.getArchive(id)
+
+	response = StreamingHttpResponse((line for line in open(localpath,'r')))
+	response['Content-Disposition'] = "attachment; filename={0}".format(localpath)
+	response['Content-Length'] = os.path.getsize(localpath)
+	return response
 
 def handle_uploaded_file(folder, file, filepath, filename):
 	if not os.path.exists(folder):
@@ -90,6 +98,7 @@ def randomString(length):
 
 def exist(id):
 	return os.path.exists('upload/'+id+'/')
+
 
 
 

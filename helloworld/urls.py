@@ -17,7 +17,9 @@ urlpatterns = patterns('',
 
     (r'^event/(?P<id>\w+)/', 'helloworld.views.event'),
     (r'^event/(?P<id>\w+)', 'helloworld.views.event'),
-    #(r'^event/', 'helloworld.views.event'),
+
+    (r'^archive/(?P<id>\w+)/', 'helloworld.views.archive'),
+    (r'^archive/(?P<id>\w+)', 'helloworld.views.archive'),
 
     # Hello, world!
     (r'', 'helloworld.views.index'),
