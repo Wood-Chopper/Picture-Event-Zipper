@@ -91,7 +91,7 @@ def get_link():
 		os.mkdir('upload/'+random+'/')
 		return random
 	else:
-		return get_link
+		return get_link()
 
 def randomString(length):
 	return ''.join(random.choice(string.lowercase) for i in range(length))
