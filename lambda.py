@@ -13,6 +13,7 @@ print('Loading function')
 
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
+bucket = 'pictureeventjn'
 
 def lambda_handler(event, context):
     #print("Received event: " + json.dumps(event, indent=2))
@@ -42,14 +43,16 @@ def listPictures(event_id):
         os.mkdir(rd)
     zf = zipfile.ZipFile(rd + 'archive.zip', mode='w')
     try:
-        for object in s3res.Bucket('pictureeventjn').objects.all():
-            if object.key.split('/')[1] == event_id:
+        for object in s3res.Bucket(bucket).objects.all():
+            if object.key.split('/')[1] == event_id and object.key.split('/')[0] == "upload":
                 print(object.key.split('/')[2])
-                s3cli.download_file('pictureeventjn', object.key, rd + object.key.split('/')[2])
+                s3cli.download_file(bucket, object.key, rd + object.key.split('/')[2])
                 zf.write(rd + object.key.split('/')[2])
+                print(object.key.split('/')[2] + " dans zip")
     finally:
         zf.close()
     data = open(rd + 'archive.zip', 'rb')
-    s3res.Bucket('pictureeventjn').put_object(Key='archives/'+event_id + '/archive.zip', Body=data)
+    s3res.Bucket(bucket).put_object(Key='archives/'+event_id + '/archive.zip', Body=data)
     shutil.rmtree('/tmp/' + rand)
+    s3cli.get_object(Bucket=bucket, Key='archives/' + event_id + '/archive.zip').Acl().put(ACL='public-read')#A regler
     
