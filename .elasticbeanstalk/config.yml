@@ -1,6 +1,6 @@
 branch-defaults:
   default:
-    environment: django-env
+    environment: flask-env-jer
     group_suffix: null
   master:
     environment: flask-env-jer
