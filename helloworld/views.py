@@ -88,7 +88,12 @@ def write_file(path, file):
 def get_link():
 	random = randomString(20)
 	if not os.path.exists('upload/'+random+'/'):
-		os.makedirs('upload/'+random+'/')#makedirs
+		os.makedirs('upload/'+random+'/')
+		rd = '/tmp/' + randomString(20) + '/'
+		os.makedirs(rd)
+		zf = zipfile.ZipFile(rd + 'archive.zip', mode='w')
+		zf.close()
+		S3Utils.addEmptyArch('archives/'+random+'/archive.zip', rd + 'archive.zip')
 		return random
 	else:
 		return get_link()

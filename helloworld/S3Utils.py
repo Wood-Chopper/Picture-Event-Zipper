@@ -35,6 +35,10 @@ def getArchive(event_id):
 	response = s3cli.get_object(Bucket=bucket, Key='archives/' + event_id + '/archive.zip')
 	s3cli.download_file(bucket, 'archives/' + event_id + '/archive.zip', localpath)
 	return localpath
+
+def addEmptyArch(remote, local):
+	data = open(local, 'rb')
+	s3res.Bucket(bucket).put_object(Key=remote, Body=data)
 	
 def randomString(length):
 	return ''.join(random.choice(string.lowercase) for i in range(length))
