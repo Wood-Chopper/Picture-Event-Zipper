@@ -14,10 +14,25 @@ def printBuckets():
 
 def addPicture(filename):
 	data = open(filename, 'rb')
-	s3res.Bucket(bucket).put_object(Key=filename, Body=data)#TODO
-	#async, delete filename when done
-	print(filename + " uploaded")
+	keys = []
+	for a in s3res.Bucket('pictureeventjn').objects.all():
+		if filename.rsplit('.', 1)[0] in a.key:
+			keys.append(a.key)
+	print(keys)
+	if not filename in keys:
+		s3res.Bucket(bucket).put_object(Key=filename, Body=data)
+		print(filename + " uploaded")
+		os.remove(filename)
+		return
+	count = 1
+	filenamedbl = filename.rsplit('.', 1)[0] + '-' + str(count) + '.' + filename.rsplit('.', 1)[1]
+	while filenamedbl in keys:
+		count+=1
+		filenamedbl = filename.rsplit('.', 1)[0] + '-' + str(count) + '.' + filename.rsplit('.', 1)[1]
+	s3res.Bucket(bucket).put_object(Key=filenamedbl, Body=data)
+	print(filenamedbl + " uploaded")
 	os.remove(filename)
+
 
 def listPictures(event_id):
 	zf = zipfile.ZipFile('archive.zip', mode='w')
