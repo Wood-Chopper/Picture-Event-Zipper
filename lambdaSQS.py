@@ -16,8 +16,12 @@ s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
 bucket = 'pictureeventjn'
 
+#python-imaging
+#ImageMagick en appel de commande
+
 def lambda_handler(event, context):
     messages = queue.receive_messages(MaxNumberOfMessages=10)
+    print(str(len(messages)) + " pulled")
     listEventUpdated = []
     listArchive = []
     listZippers = []
@@ -25,8 +29,6 @@ def lambda_handler(event, context):
         parsed = json.loads(message.body)
         key = parsed['Records'][0]['s3']['object']['key']
         addFileToArch(key, listEventUpdated, listArchive, listZippers)
-        result = sqscli.delete_message(QueueUrl=queue.url, ReceiptHandle=message.receipt_handle)
-        print("Deleting : " + str(result))
         result = message.delete()
         print("Deleting : " + str(result))
     sendArchive(listEventUpdated, listArchive, listZippers)
@@ -44,7 +46,8 @@ def addFileToArch(key, listEvent, listArchive, listZippers):
     indexEvent = listEvent.index(event_name)
     tempPath = '/tmp/'+listArchive[indexEvent]+'/'+key.split('/')[2]
     s3cli.download_file(bucket, key, tempPath)
-    listZippers[indexEvent].write(tempPath)
+    if not key.split('/')[2] in listZippers[indexEvent].namelist():
+        listZippers[indexEvent].write(tempPath, key.split('/')[2])
     
 def sendArchive(listEventUpdated, listArchive, listZippers):
     for i in range(len(listEventUpdated)):

@@ -16,6 +16,8 @@ def addPicture(filename):
 	data = open(filename, 'rb')
 	s3res.Bucket(bucket).put_object(Key=filename, Body=data)#TODO
 	#async, delete filename when done
+	print(filename + " uploaded")
+	os.remove(filename)
 
 def listPictures(event_id):
 	zf = zipfile.ZipFile('archive.zip', mode='w')

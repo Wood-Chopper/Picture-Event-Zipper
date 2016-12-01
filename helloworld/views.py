@@ -14,6 +14,7 @@ import os
 import random
 import string
 import zipfile
+import threading
 
 def index(request):
 	if request.method == 'POST':
@@ -33,7 +34,10 @@ def event(request, id):
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():
-			handle_uploaded_file('upload/' + str(id) + '/', request.FILES['file'], 'upload/' + str(id) + '/' + request.FILES['file'].name, request.FILES['file'].name)
+			### A mettre dans un thread
+			#handle_uploaded_file('upload/' + str(id) + '/', request.FILES['file'], 'upload/' + str(id) + '/' + request.FILES['file'].name, request.FILES['file'].name)
+			threading.Thread(target=handle_uploaded_file, args=['upload/' + str(id) + '/', request.FILES['file'], 'upload/' + str(id) + '/' + request.FILES['file'].name, request.FILES['file'].name]).start()
+			###
 			context['filename'] = request.FILES['file'].name
 			
 		form = PictureForm()
@@ -50,7 +54,7 @@ def archive(request, id):
 	localpath = S3Utils.getArchive(id)
 
 	response = StreamingHttpResponse((line for line in open(localpath,'r')))
-	response['Content-Disposition'] = "attachment; filename={0}".format(localpath)
+	response['Content-Disposition'] = "attachment; filename=Archive.zip"
 	response['Content-Length'] = os.path.getsize(localpath)
 	return response
 
@@ -103,8 +107,6 @@ def randomString(length):
 
 def exist(id):
 	return os.path.exists('upload/'+id+'/')
-
-
 
 
 
