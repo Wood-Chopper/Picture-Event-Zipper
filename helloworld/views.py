@@ -66,9 +66,10 @@ def handle_uploaded_file(folder, file, filepath, filename):
 	ext = spl[len(spl)-1]
 
 	if ext == 'zip':
-		with open(filepath, 'wb+') as destination:
-			for chunk in file.chunks():
-				destination.write(chunk)
+		destination = open(filepath, 'wb+')
+		for chunk in file.chunks():
+			destination.write(chunk)
+		destination.close()
 
 		fh = open(filepath, 'rb')
 		z = zipfile.ZipFile(fh)
@@ -78,6 +79,7 @@ def handle_uploaded_file(folder, file, filepath, filename):
 				z.extract(name, outpath)
 				S3Utils.addPicture(folder + name)
 		fh.close()
+		os.remove(filepath)
 		return
 
 	write_file(filepath, file)

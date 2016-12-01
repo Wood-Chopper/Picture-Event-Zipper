@@ -6,6 +6,17 @@ import os
 import zipfile
 import random
 import string
+import shutil
+
+folder = '/tmp'
+for the_file in os.listdir(folder):
+    file_path = os.path.join(folder, the_file)
+    try:
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
+        #elif os.path.isdir(file_path): shutil.rmtree(file_path)
+    except Exception as e:
+        print(e)
 
 print('Loading function')
 sqscli = boto3.client('sqs')
@@ -21,6 +32,8 @@ bucket = 'pictureeventjn'
 
 def lambda_handler(event, context):
     messages = queue.receive_messages(MaxNumberOfMessages=10)
+    messages += queue.receive_messages(MaxNumberOfMessages=10)
+    messages += queue.receive_messages(MaxNumberOfMessages=10)
     print(str(len(messages)) + " pulled")
     listEventUpdated = []
     listArchive = []
@@ -30,7 +43,7 @@ def lambda_handler(event, context):
         key = parsed['Records'][0]['s3']['object']['key']
         addFileToArch(key, listEventUpdated, listArchive, listZippers)
         result = message.delete()
-        print("Deleting : " + str(result))
+        print("Deleting message : " + str(result))
     sendArchive(listEventUpdated, listArchive, listZippers)
     return None
 
@@ -48,12 +61,14 @@ def addFileToArch(key, listEvent, listArchive, listZippers):
     s3cli.download_file(bucket, key, tempPath)
     if not key.split('/')[2] in listZippers[indexEvent].namelist():
         listZippers[indexEvent].write(tempPath, key.split('/')[2])
+    os.remove(tempPath)
     
 def sendArchive(listEventUpdated, listArchive, listZippers):
     for i in range(len(listEventUpdated)):
         listZippers[i].close()
         data = open('/tmp/'+listArchive[i]+'/archive.zip', 'rb')
         s3res.Bucket(bucket).put_object(Key='archives/'+listEventUpdated[i] + '/archive.zip', Body=data)
+        os.remove('/tmp/'+listArchive[i]+'/archive.zip')
     
         
 def randomString(length):

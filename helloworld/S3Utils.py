@@ -32,8 +32,8 @@ def listPictures(event_id):
 
 def getArchive(event_id):
 	rand = randomString(20)
-	localpath = 'tmp/'+rand+'/archive.zip'
-	os.makedirs('tmp/'+rand+'/')
+	localpath = '/tmp/'+rand+'/archive.zip'
+	os.makedirs('/tmp/'+rand+'/')
 	response = s3cli.get_object(Bucket=bucket, Key='archives/' + event_id + '/archive.zip')
 	s3cli.download_file(bucket, 'archives/' + event_id + '/archive.zip', localpath)
 	return localpath
