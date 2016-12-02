@@ -3,6 +3,7 @@ import zipfile
 import random
 import string
 import os
+from subprocess import call
 
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
@@ -13,6 +14,7 @@ def printBuckets():
 		print(bucket.name)
 
 def addPicture(filename):
+	call(["convert", filename, "-resize", "2000x2000>", filename])
 	data = open(filename, 'rb')
 	keys = []
 	for a in s3res.Bucket('pictureeventjn').objects.all():
@@ -22,7 +24,7 @@ def addPicture(filename):
 	if not filename in keys:
 		s3res.Bucket(bucket).put_object(Key=filename, Body=data)
 		print(filename + " uploaded")
-		os.remove(filename)
+		#os.remove(filename)
 		return
 	count = 1
 	filenamedbl = filename.rsplit('.', 1)[0] + '-' + str(count) + '.' + filename.rsplit('.', 1)[1]
@@ -31,7 +33,7 @@ def addPicture(filename):
 		filenamedbl = filename.rsplit('.', 1)[0] + '-' + str(count) + '.' + filename.rsplit('.', 1)[1]
 	s3res.Bucket(bucket).put_object(Key=filenamedbl, Body=data)
 	print(filenamedbl + " uploaded")
-	os.remove(filename)
+	#os.remove(filename)
 
 
 def listPictures(event_id):
