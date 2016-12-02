@@ -29,15 +29,10 @@ def event(request, id):
 	template = loader.get_template('event.html')
 	context = {}
 	context['id'] = id
-	print(request.method == 'POST')
-	print(request.method)
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():
-			### A mettre dans un thread
-			#handle_uploaded_file('upload/' + str(id) + '/', request.FILES['file'], 'upload/' + str(id) + '/' + request.FILES['file'].name, request.FILES['file'].name)
-			threading.Thread(target=handle_uploaded_file, args=['upload/' + str(id) + '/', request.FILES['file'], 'upload/' + str(id) + '/' + request.FILES['file'].name, request.FILES['file'].name]).start()
-			###
+			handle_uploaded_file('upload/' + str(id) + '/', request.FILES['file'], 'upload/' + str(id) + '/' + request.FILES['file'].name, request.FILES['file'].name)
 			context['filename'] = request.FILES['file'].name
 			
 		form = PictureForm()
@@ -59,6 +54,8 @@ def archive(request, id):
 	return response
 
 def handle_uploaded_file(folder, file, filepath, filename):
+
+	pictures = []
 	if not os.path.exists(folder):
 		os.mkdir(folder)
 
@@ -77,14 +74,15 @@ def handle_uploaded_file(folder, file, filepath, filename):
 			if not '/' in name:
 				outpath = folder
 				z.extract(name, outpath)
-				S3Utils.addPicture(folder + name)
+				pictures.append(folder + name)
 		fh.close()
+		print("Zip extracted")
 		os.remove(filepath)
-		return
+	else:
+		write_file(filepath, file)
+		pictures.append(filepath)
 
-	write_file(filepath, file)
-
-	S3Utils.addPicture(filepath)
+	threading.Thread(target=S3Utils.addPictures, args=[pictures]).start()
 
 def write_file(path, file):
 	with open(path, 'wb+') as destination:

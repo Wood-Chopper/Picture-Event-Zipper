@@ -6748,10 +6748,6 @@
 	}
 </style>
 
-<script>
-	document.getElementById("id_file").setAttribute("accept", ".zip,image/*");
-</script>
-
 <html>
   
   <head>
@@ -6780,7 +6776,7 @@
 						<input type="submit">
 					</form>
 					{% if filename %}
-						{{ filename }} uploaded
+						{{ filename }} will be processed soon
 					{% endif %}
 				</div>
 			</div>
@@ -6795,5 +6791,8 @@
       </div>
     </div>
   </body>
+  <script>
+	document.getElementById("id_file").setAttribute("accept", ".zip,image/*");
+</script>
 
 </html>

@@ -32,8 +32,10 @@ bucket = 'pictureeventjn'
 
 def lambda_handler(event, context):
     messages = queue.receive_messages(MaxNumberOfMessages=10)
-    messages += queue.receive_messages(MaxNumberOfMessages=10)
-    messages += queue.receive_messages(MaxNumberOfMessages=10)
+    temp = queue.receive_messages(MaxNumberOfMessages=10)
+    while len(temp) > 0:
+        messages += temp
+        temp = queue.receive_messages(MaxNumberOfMessages=10)
     print(str(len(messages)) + " pulled")
     listEventUpdated = []
     listArchive = []
@@ -58,6 +60,7 @@ def addFileToArch(key, listEvent, listArchive, listZippers):
         listZippers.append(zipfile.ZipFile('/tmp/'+rd+'/archive.zip', mode='a'))
     indexEvent = listEvent.index(event_name)
     tempPath = '/tmp/'+listArchive[indexEvent]+'/'+key.split('/')[2]
+    print("downloading : " + key)
     s3cli.download_file(bucket, key, tempPath)
     if not key.split('/')[2] in listZippers[indexEvent].namelist():
         listZippers[indexEvent].write(tempPath, key.split('/')[2])

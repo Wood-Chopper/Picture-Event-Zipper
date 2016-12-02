@@ -16,25 +16,42 @@ def printBuckets():
 def addPicture(filename):
 	call(["convert", filename, "-resize", "2000x2000>", filename])
 	data = open(filename, 'rb')
+	init_filename = filename
+	filename = filename.replace(' ', '_')
 	keys = []
 	for a in s3res.Bucket('pictureeventjn').objects.all():
 		if filename.rsplit('.', 1)[0] in a.key:
 			keys.append(a.key)
-	print(keys)
 	if not filename in keys:
-		s3res.Bucket(bucket).put_object(Key=filename, Body=data)
+		try:
+			s3res.Bucket(bucket).put_object(Key=filename, Body=data)
+		except:
+			print("ERREUR LORS DE L'UPLOAD")
+			print("Le fichier sera upload lors du prochain reboot")
+			raise
+			return
 		print(filename + " uploaded")
-		#os.remove(filename)
+		os.remove(init_filename)
 		return
+
 	count = 1
 	filenamedbl = filename.rsplit('.', 1)[0] + '-' + str(count) + '.' + filename.rsplit('.', 1)[1]
 	while filenamedbl in keys:
 		count+=1
 		filenamedbl = filename.rsplit('.', 1)[0] + '-' + str(count) + '.' + filename.rsplit('.', 1)[1]
-	s3res.Bucket(bucket).put_object(Key=filenamedbl, Body=data)
+	try:
+		s3res.Bucket(bucket).put_object(Key=filenamedbl, Body=data)
+	except:
+		print("ERREUR LORS DE L'UPLOAD")
+		print("Le fichier sera upload lors du prochain reboot")
+		raise
+		return
 	print(filenamedbl + " uploaded")
-	#os.remove(filename)
+	os.remove(filename)
 
+def addPictures(list):
+	for file in list:
+		addPicture(file)
 
 def listPictures(event_id):
 	zf = zipfile.ZipFile('archive.zip', mode='w')

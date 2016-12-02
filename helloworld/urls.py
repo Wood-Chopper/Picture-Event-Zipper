@@ -2,10 +2,27 @@
 
 from django.conf.urls import patterns, include
 from django.conf import settings
+import os
+import S3Utils
+import threading
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
+
+def uploadOldFiles():
+    events = os.listdir('upload')
+    filesLeft = []
+    for event in events:
+        files = os.listdir('upload/' + event)
+        for file in files:
+            filesLeft.append('upload/' + event + '/' + file)
+    print("files : " + str(filesLeft))
+    for filename in filesLeft:
+        S3Utils.addPicture(filename)
+
+threading.Thread(target=uploadOldFiles).start()
+
 
 urlpatterns = patterns('',
 
