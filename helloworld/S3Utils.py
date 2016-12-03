@@ -4,10 +4,15 @@ import random
 import string
 import os
 from subprocess import call
+from collections import defaultdict
 
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
 bucket = 'pictureeventjn'
+
+uploaded = defaultdict(lambda: 0)
+
+locker = True
 
 def printBuckets():
 	for bucket in s3.buckets.all():
@@ -24,10 +29,15 @@ def addPicture(localPath):
 	for a in s3res.Bucket(bucket).objects.all():
 		if new_key.rsplit('.', 1)[0] in a.key:
 			keys.append(a.key)
-	if not new_key in keys:
+	wait()
+	lock()
+	if not (new_key in keys) and (uploaded[new_key] == 0):
+		uploaded[new_key] = 1
+		unlock()
 		try:
 			s3res.Bucket(bucket).put_object(Key=new_key, Body=data)
 		except:
+			unlock()
 			print("ERREUR LORS DE L'UPLOAD")
 			print("Le fichier sera upload lors du prochain reboot")
 			raise
@@ -38,10 +48,11 @@ def addPicture(localPath):
 
 	count = 1
 	filenamedbl = new_key.rsplit('.', 1)[0] + '-' + str(count) + '.' + new_key.rsplit('.', 1)[1]
-	while filenamedbl in keys:
+	while (filenamedbl in keys) | (uploaded[filenamedbl] == 1):
 		count+=1
 		filenamedbl = new_key.rsplit('.', 1)[0] + '-' + str(count) + '.' + new_key.rsplit('.', 1)[1]
 	try:
+		uploaded[filenamedbl] == 1
 		s3res.Bucket(bucket).put_object(Key=filenamedbl, Body=data)
 	except:
 		print("ERREUR LORS DE L'UPLOAD")
@@ -81,4 +92,15 @@ def addEmptyArch(remote, local):
 	
 def randomString(length):
 	return ''.join(random.choice(string.lowercase) for i in range(length))
+
+
+def wait():
+	while locker == False:
+		pass
+
+def lock():
+	locker = False
+
+def unlock():
+	locker = True
 
