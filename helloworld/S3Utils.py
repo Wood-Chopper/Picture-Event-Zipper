@@ -13,32 +13,34 @@ def printBuckets():
 	for bucket in s3.buckets.all():
 		print(bucket.name)
 
-def addPicture(filename):
-	call(["convert", filename, "-resize", "2000x2000>", filename])
-	data = open(filename, 'rb')
-	init_filename = filename
-	filename = filename.replace(' ', '_')
+def addPicture(localPath):
+	call(["convert", localPath, "-resize", "2000x2000>", localPath])
+	data = open(localPath, 'rb')
+	init_filename = localPath
+	localPath = localPath.replace(' ', '_')
+	split_part = localPath.split('/')
+	new_key = split_part[0] + '/' + split_part[1] + '/' + split_part[3]
 	keys = []
-	for a in s3res.Bucket('pictureeventjn').objects.all():
-		if filename.rsplit('.', 1)[0] in a.key:
+	for a in s3res.Bucket(bucket).objects.all():
+		if new_key.rsplit('.', 1)[0] in a.key:
 			keys.append(a.key)
-	if not filename in keys:
+	if not new_key in keys:
 		try:
-			s3res.Bucket(bucket).put_object(Key=filename, Body=data)
+			s3res.Bucket(bucket).put_object(Key=new_key, Body=data)
 		except:
 			print("ERREUR LORS DE L'UPLOAD")
 			print("Le fichier sera upload lors du prochain reboot")
 			raise
 			return
-		print(filename + " uploaded")
+		print(new_key + " uploaded")
 		os.remove(init_filename)
 		return
 
 	count = 1
-	filenamedbl = filename.rsplit('.', 1)[0] + '-' + str(count) + '.' + filename.rsplit('.', 1)[1]
+	filenamedbl = new_key.rsplit('.', 1)[0] + '-' + str(count) + '.' + new_key.rsplit('.', 1)[1]
 	while filenamedbl in keys:
 		count+=1
-		filenamedbl = filename.rsplit('.', 1)[0] + '-' + str(count) + '.' + filename.rsplit('.', 1)[1]
+		filenamedbl = new_key.rsplit('.', 1)[0] + '-' + str(count) + '.' + new_key.rsplit('.', 1)[1]
 	try:
 		s3res.Bucket(bucket).put_object(Key=filenamedbl, Body=data)
 	except:
@@ -47,7 +49,7 @@ def addPicture(filename):
 		raise
 		return
 	print(filenamedbl + " uploaded")
-	os.remove(filename)
+	os.remove(init_filename)
 
 def addPictures(list):
 	for file in list:
@@ -75,6 +77,7 @@ def getArchive(event_id):
 def addEmptyArch(remote, local):
 	data = open(local, 'rb')
 	s3res.Bucket(bucket).put_object(Key=remote, Body=data)
+	os.remove(local)
 	
 def randomString(length):
 	return ''.join(random.choice(string.lowercase) for i in range(length))

@@ -10,16 +10,19 @@ import threading
 from django.contrib import admin
 admin.autodiscover()
 
-def uploadOldFiles():
+def uploadOldFiles():#TOREDO
     events = os.listdir('upload')
     filesLeft = []
     for event in events:
-        files = os.listdir('upload/' + event)
-        for file in files:
-            filesLeft.append('upload/' + event + '/' + file)
+        if os.path.isdir('upload/' + event):
+            files = os.listdir('upload/' + event)
+            for temp in files:
+                if os.path.isdir('upload/' + event + '/' + temp):
+                    temps = os.listdir('upload/' + event + '/' + temp)
+                    for file in temps:
+                        filesLeft.append('upload/' + event + '/' + temp + '/' + file)
     print("files : " + str(filesLeft))
-    for filename in filesLeft:
-        S3Utils.addPicture(filename)
+    S3Utils.addPictures(filesLeft)
 
 threading.Thread(target=uploadOldFiles).start()
 

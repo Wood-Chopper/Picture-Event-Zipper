@@ -32,12 +32,11 @@ def event(request, id):
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():
-			handle_uploaded_file('upload/' + str(id) + '/', request.FILES['file'], 'upload/' + str(id) + '/' + request.FILES['file'].name, request.FILES['file'].name)
+			handle_uploaded_file('upload/' + str(id) + '/',request.FILES['file'], request.FILES['file'].name)
 			context['filename'] = request.FILES['file'].name
 			
 		form = PictureForm()
 		context['form'] = form
-		#S3Utils.listPictures(id)
 		return render_to_response('event.html', context, context_instance=RequestContext(request))
 	else:
 		form = PictureForm()
@@ -53,34 +52,37 @@ def archive(request, id):
 	response['Content-Length'] = os.path.getsize(localpath)
 	return response
 
-def handle_uploaded_file(folder, file, filepath, filename):
-
+def handle_uploaded_file(folder, file, filename):
+	randFolder = randomString(20) + '/'
+	localTempPath = folder + randFolder + filename
+	filepath = folder + filename
 	pictures = []
-	if not os.path.exists(folder):
-		os.mkdir(folder)
+
+	if not os.path.exists(folder + randFolder):
+		os.makedirs(folder + randFolder)
 
 	spl = filename.split('.')
 	ext = spl[len(spl)-1]
 
 	if ext == 'zip':
-		destination = open(filepath, 'wb+')
+		destination = open(localTempPath, 'wb+')
 		for chunk in file.chunks():
 			destination.write(chunk)
 		destination.close()
 
-		fh = open(filepath, 'rb')
+		fh = open(localTempPath, 'rb')
 		z = zipfile.ZipFile(fh)
 		for name in z.namelist():
 			if not '/' in name:
-				outpath = folder
+				outpath = folder + randFolder
 				z.extract(name, outpath)
-				pictures.append(folder + name)
+				pictures.append(folder + randFolder + name)
 		fh.close()
 		print("Zip extracted")
-		os.remove(filepath)
+		os.remove(localTempPath)
 	else:
-		write_file(filepath, file)
-		pictures.append(filepath)
+		write_file(localTempPath, file)
+		pictures.append(localTempPath)
 
 	threading.Thread(target=S3Utils.addPictures, args=[pictures]).start()
 
