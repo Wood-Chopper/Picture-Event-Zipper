@@ -30,15 +30,11 @@ def addPicture(localPath):
 	for a in s3res.Bucket(bucket).objects.all():
 		if new_key.rsplit('.', 1)[0] in a.key:
 			keys.append(a.key)
-	wait()
-	lock()
 	if not (new_key in keys) and (uploaded[new_key] == 0):
 		uploaded[new_key] = 1
-		unlock()
 		try:
 			s3res.Bucket(bucket).put_object(Key=new_key, Body=data)
 		except:
-			unlock()
 			print("ERREUR LORS DE L'UPLOAD")
 			print("Le fichier sera upload lors du prochain reboot")
 			raise
@@ -64,8 +60,11 @@ def addPicture(localPath):
 	os.remove(init_filename)
 
 def addPictures(list):
+	wait()
+	lock()
 	for file in list:
 		addPicture(file)
+	unlock()
 
 def listPictures(event_id):
 	zf = zipfile.ZipFile('archive.zip', mode='w')
