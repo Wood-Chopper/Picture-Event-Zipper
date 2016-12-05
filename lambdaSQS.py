@@ -26,6 +26,7 @@ queue = sqsres.get_queue_by_name(QueueName='s3tolambda')
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
 bucket = 'pictureeventjn'
+bucketArch = 'pictureeventarchivejn'
 
 #python-imaging
 #ImageMagick en appel de commande
@@ -33,7 +34,7 @@ bucket = 'pictureeventjn'
 def lambda_handler(event, context):
     messages = queue.receive_messages(MaxNumberOfMessages=10)
     temp = queue.receive_messages(MaxNumberOfMessages=10)
-    while len(temp) > 0:
+    while len(temp) > 0 and len(temp) < 100: # Maximum 100 en un coup
         messages += temp
         temp = queue.receive_messages(MaxNumberOfMessages=10)
     print(str(len(messages)) + " pulled")
@@ -56,7 +57,7 @@ def addFileToArch(key, listEvent, listArchive, listZippers):
         os.makedirs('/tmp/'+rd)
         listArchive.append(rd)
         listEvent.append(event_name)
-        s3cli.download_file(bucket, 'archives/'+event_name+'/archive.zip', '/tmp/'+rd+'/archive.zip')
+        s3cli.download_file(bucketArch, 'archives/'+event_name+'/archive.zip', '/tmp/'+rd+'/archive.zip')
         listZippers.append(zipfile.ZipFile('/tmp/'+rd+'/archive.zip', mode='a'))
     indexEvent = listEvent.index(event_name)
     tempPath = '/tmp/'+listArchive[indexEvent]+'/'+key.split('/')[2]
@@ -70,7 +71,7 @@ def sendArchive(listEventUpdated, listArchive, listZippers):
     for i in range(len(listEventUpdated)):
         listZippers[i].close()
         data = open('/tmp/'+listArchive[i]+'/archive.zip', 'rb')
-        s3res.Bucket(bucket).put_object(Key='archives/'+listEventUpdated[i] + '/archive.zip', Body=data)
+        s3res.Bucket(bucketArch).put_object(Key='archives/'+listEventUpdated[i] + '/archive.zip', Body=data)
         os.remove('/tmp/'+listArchive[i]+'/archive.zip')
     
         

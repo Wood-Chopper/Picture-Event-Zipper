@@ -20,6 +20,7 @@ def printBuckets():
 		print(bucket.name)
 
 def addPicture(localPath):
+	global uploaded
 	call(["convert", localPath, "-resize", "2000x2000>", localPath])
 	data = open(localPath, 'rb')
 	init_filename = localPath
@@ -99,8 +100,10 @@ def wait():
 		pass
 
 def lock():
+	global locker
 	locker = False
 
 def unlock():
+	global locker
 	locker = True
 
