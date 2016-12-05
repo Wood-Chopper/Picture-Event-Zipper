@@ -84,8 +84,8 @@ def handle_uploaded_file(folder, file, filename):
 		write_file(localTempPath, file)
 		pictures.append(localTempPath)
 
-	#threading.Thread(target=S3Utils.addPictures, args=[pictures]).start()
-	S3Utils.addPictures(pictures)
+	threading.Thread(target=S3Utils.addPictures, args=[pictures]).start()
+	#S3Utils.addPictures(pictures)
 
 def write_file(path, file):
 	with open(path, 'wb+') as destination:
