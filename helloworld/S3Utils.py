@@ -9,6 +9,7 @@ from collections import defaultdict
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
 bucket = 'pictureeventjn'
+bucketArch = 'pictureeventarchivejn'
 
 uploaded = defaultdict(lambda: 0)
 
@@ -69,7 +70,7 @@ def addPictures(list):
 def listPictures(event_id):
 	zf = zipfile.ZipFile('archive.zip', mode='w')
 	try:
-		for object in s3res.Bucket('pictureeventjn').objects.all():
+		for object in s3res.Bucket(bucket).objects.all():
 			if object.key.split('/')[1] == event_id:
 				print(object.key.split('/')[2])
 				s3cli.download_file(bucket, object.key, 'tmp/' + object.key.split('/')[2])
@@ -81,13 +82,13 @@ def getArchive(event_id):
 	rand = randomString(20)
 	localpath = '/tmp/'+rand+'/archive.zip'
 	os.makedirs('/tmp/'+rand+'/')
-	response = s3cli.get_object(Bucket=bucket, Key='archives/' + event_id + '/archive.zip')
-	s3cli.download_file(bucket, 'archives/' + event_id + '/archive.zip', localpath)
+	response = s3cli.get_object(Bucket=bucketArch, Key='archives/' + event_id + '/archive.zip')
+	s3cli.download_file(bucketArch, 'archives/' + event_id + '/archive.zip', localpath)
 	return localpath
 
 def addEmptyArch(remote, local):
 	data = open(local, 'rb')
-	s3res.Bucket(bucket).put_object(Key=remote, Body=data)
+	s3res.Bucket(bucketArch).put_object(Key=remote, Body=data)
 	os.remove(local)
 	
 def randomString(length):
