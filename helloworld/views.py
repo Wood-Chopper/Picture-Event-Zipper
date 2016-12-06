@@ -111,6 +111,86 @@ def randomString(length):
 def exist(id):
 	return os.path.exists('upload/'+id+'/')
 
+def test1(request):
+	s3res = boto3.resource('s3')
+	s3cli = boto3.client('s3')
+	bucket = 'pictureeventjn'
+	bucketArch = 'pictureeventarchivejn'
+
+	data = open("test.jpg", 'rb')
+	s3res.Bucket(bucket).put_object(Key="test/test.jpg", Body=data)
+
+	context = {}
+	context['pass'] = "put object to pictureeventjn OK"
+	return render_to_response('test.html', context, context_instance=RequestContext(request))
+
+
+def test2(request):
+	s3res = boto3.resource('s3')
+	s3cli = boto3.client('s3')
+	bucket = 'pictureeventjn'
+	bucketArch = 'pictureeventarchivejn'
+
+	s3cli.download_file(bucket, "test/test.jpg", '/tmp/to_delete.jpg')
+
+	context = {}
+	context['pass'] = "get object from pictureeventjn OK"
+	return render_to_response('test.html', context, context_instance=RequestContext(request))
+
+
+def test3(request):
+	s3res = boto3.resource('s3')
+	s3cli = boto3.client('s3')
+	bucket = 'pictureeventjn'
+	bucketArch = 'pictureeventarchivejn'
+
+	s3res.Bucket(bucket).objects.all()
+
+	context = {}
+	context['pass'] = "list objects from pictureeventjn OK"
+	return render_to_response('test.html', context, context_instance=RequestContext(request))
+
+
+
+def test1bis(request):
+	s3res = boto3.resource('s3')
+	s3cli = boto3.client('s3')
+	bucket = 'pictureeventjn'
+	bucketArch = 'pictureeventarchivejn'
+
+	data = open("test.jpg", 'rb')
+	s3res.Bucket(bucketArch).put_object(Key="test/test.jpg", Body=data)
+
+	context = {}
+	context['pass'] = "put object to pictureeventarchivejn OK"
+	return render_to_response('test.html', context, context_instance=RequestContext(request))
+
+
+def test2bis(request):
+	s3res = boto3.resource('s3')
+	s3cli = boto3.client('s3')
+	bucket = 'pictureeventjn'
+	bucketArch = 'pictureeventarchivejn'
+
+	s3cli.download_file(bucketArch, "test/test.jpg", '/tmp/to_delete.jpg')
+
+	context = {}
+	context['pass'] = "get object from pictureeventarchivejn OK"
+	return render_to_response('test.html', context, context_instance=RequestContext(request))
+
+
+def test3bis(request):
+	s3res = boto3.resource('s3')
+	s3cli = boto3.client('s3')
+	bucket = 'pictureeventjn'
+	bucketArch = 'pictureeventarchivejn'
+
+	s3res.Bucket(bucketArch).objects.all()
+
+	context = {}
+	context['pass'] = "list objects from pictureeventarchivejn OK"
+	return render_to_response('test.html', context, context_instance=RequestContext(request))
+
 
 
 

@@ -35,6 +35,14 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
 
+    (r'^test1/', 'helloworld.views.test1'),
+    (r'^test2/', 'helloworld.views.test2'),
+    (r'^test3/', 'helloworld.views.test3'),
+
+    (r'^test1bis/', 'helloworld.views.test1bis'),
+    (r'^test2bis/', 'helloworld.views.test2bis'),
+    (r'^test3bis/', 'helloworld.views.test3bis'),
+
     (r'^event/(?P<id>\w+)/', 'helloworld.views.event'),
     (r'^event/(?P<id>\w+)', 'helloworld.views.event'),
 
