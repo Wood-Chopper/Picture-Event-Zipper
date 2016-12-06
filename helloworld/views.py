@@ -15,6 +15,7 @@ import random
 import string
 import zipfile
 import threading
+from subprocess import call
 
 def index(request):
 	if request.method == 'POST':
@@ -191,6 +192,12 @@ def test3bis(request):
 	context['pass'] = "list objects from pictureeventarchivejn OK"
 	return render_to_response('test.html', context, context_instance=RequestContext(request))
 
+def testImg(request):
+	call(["convert", "test.jpg", "-resize", "2000x2000>", "test.jpg"])
+
+	context = {}
+	context['pass'] = "convert OK"
+	return render_to_response('test.html', context, context_instance=RequestContext(request))
 
 
 

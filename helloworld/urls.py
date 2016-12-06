@@ -38,6 +38,7 @@ urlpatterns = patterns('',
     (r'^test1/', 'helloworld.views.test1'),
     (r'^test2/', 'helloworld.views.test2'),
     (r'^test3/', 'helloworld.views.test3'),
+    (r'^testimg/', 'helloworld.views.testImg'),
 
     (r'^test1bis/', 'helloworld.views.test1bis'),
     (r'^test2bis/', 'helloworld.views.test2bis'),
