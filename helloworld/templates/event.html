@@ -29,7 +29,9 @@
 						<input type="submit">
 					</form>
 					{% if filename %}
-						{{ filename }} will be processed soon
+					<div class="alert alert-success" role="alert">
+						{{ filename }} will be processed soon, it's safe to close the page.
+					</div>
 					{% endif %}
 				</div>
 			</div>
@@ -37,8 +39,10 @@
 		<div class="row">
 		<div class="col-md-4"></div>
 			<div class="col-md-4">
-				<!--<a href='/archive/{{ id }}'><button style="width:100%; background-color:gray; border-color:gray" class="btn btn-lg btn-primary" type="button">Download the Zip file of the event</button></a>-->
-				<a href='http://pictureeventarchivejn.s3-website-us-west-2.amazonaws.com/archives/{{ id }}/archive.zip'><button style="width:100%; background-color:gray; border-color:gray" class="btn btn-lg btn-primary" type="button">Download the Zip file of the event</button></a>
+				{% for arch in archives %}
+					<a href='http://pictureeventarchivejn.s3-website-us-west-2.amazonaws.com/{{ arch }}'><button style="width:100%; background-color:gray; border-color:gray" class="btn btn-lg btn-primary" type="button">Download Zip {{ forloop.counter }}</button></a>
+					<br/><br/>
+				{% endfor %}
 			</div>
 		</div>
       </div>

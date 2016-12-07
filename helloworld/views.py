@@ -30,6 +30,7 @@ def event(request, id):
 	template = loader.get_template('event.html')
 	context = {}
 	context['id'] = id
+	context['archives'] = S3Utils.get_available_archives(id)
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():
@@ -99,9 +100,9 @@ def get_link():
 		os.makedirs('upload/'+random+'/')
 		rd = '/tmp/' + randomString(20) + '/'
 		os.makedirs(rd)
-		zf = zipfile.ZipFile(rd + 'archive.zip', mode='w')
+		zf = zipfile.ZipFile(rd + 'archive-1.zip', mode='w')
 		zf.close()
-		S3Utils.addEmptyArch('archives/'+random+'/archive.zip', rd + 'archive.zip')
+		S3Utils.addEmptyArch('archives/'+random+'/archive-1.zip', rd + 'archive-1.zip')
 		return random
 	else:
 		return get_link()

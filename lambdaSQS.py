@@ -7,16 +7,7 @@ import zipfile
 import random
 import string
 import shutil
-
-folder = '/tmp'
-for the_file in os.listdir(folder):
-    file_path = os.path.join(folder, the_file)
-    try:
-        if os.path.isfile(file_path):
-            os.unlink(file_path)
-        #elif os.path.isdir(file_path): shutil.rmtree(file_path)
-    except Exception as e:
-        print(e)
+import sys,os,statvfs
 
 print('Loading function')
 sqscli = boto3.client('sqs')
@@ -28,52 +19,119 @@ s3cli = boto3.client('s3')
 bucket = 'pictureeventjn'
 bucketArch = 'pictureeventarchivejn'
 
-#python-imaging
-#ImageMagick en appel de commande
 
 def lambda_handler(event, context):
+    
+    print_disk_info()
+    clear_tmp()
+    
     messages = queue.receive_messages(MaxNumberOfMessages=10)
     temp = queue.receive_messages(MaxNumberOfMessages=10)
-    while len(temp) > 0 and len(temp) < 100: # Maximum 100 en un coup
+    sizetot = get_size(temp)
+    while len(temp) > 0 and sizetot < 512000000/6: # 512Mo/6 maximum pour ne pas saturer la memoire
         messages += temp
         temp = queue.receive_messages(MaxNumberOfMessages=10)
+        sizetot += get_size(temp)
+    print("size " + str(sizetot))
     print(str(len(messages)) + " pulled")
     listEventUpdated = []
-    listArchive = []
-    listZippers = []
+    listKeys = []
     for message in messages:
         parsed = json.loads(message.body)
         key = parsed['Records'][0]['s3']['object']['key']
-        addFileToArch(key, listEventUpdated, listArchive, listZippers)
+        addFileToArch(key, listEventUpdated, listKeys)
         result = message.delete()
         print("Deleting message : " + str(result))
-    sendArchive(listEventUpdated, listArchive, listZippers)
+    sendArchive(listEventUpdated, listKeys)
     return None
+    
+def get_size(messages):
+    size = 0
+    for message in messages:
+        parsed = json.loads(message.body)
+        size += parsed['Records'][0]['s3']['object']['size']
+    return size
 
-def addFileToArch(key, listEvent, listArchive, listZippers):
+def addFileToArch(key, listEvent, listKeys):
     event_name = key.split('/')[1]
     if not event_name in listEvent:
+        listEvent.append(event_name)
+        listKeys.append([])
+    indexEvent = listEvent.index(event_name)
+    listKeys[indexEvent].append(key)
+    
+def sendArchive(listEventUpdated, listKeys):
+        
+    for i in range (0, len(listEventUpdated)):
+        event = listEventUpdated[i]
         rd=randomString(20)
         os.makedirs('/tmp/'+rd)
-        listArchive.append(rd)
-        listEvent.append(event_name)
-        s3cli.download_file(bucketArch, 'archives/'+event_name+'/archive.zip', '/tmp/'+rd+'/archive.zip')
-        listZippers.append(zipfile.ZipFile('/tmp/'+rd+'/archive.zip', mode='a'))
-    indexEvent = listEvent.index(event_name)
-    tempPath = '/tmp/'+listArchive[indexEvent]+'/'+key.split('/')[2]
-    print("downloading : " + key)
-    s3cli.download_file(bucket, key, tempPath)
-    if not key.split('/')[2] in listZippers[indexEvent].namelist():
-        listZippers[indexEvent].write(tempPath, key.split('/')[2])
-    os.remove(tempPath)
+        archivename = get_archive_name(event)
+        print('downloading : archives/'+event+'/' + archivename)
+        s3cli.download_file(bucketArch, 'archives/'+event+'/' + archivename, '/tmp/'+rd+'/' + archivename)
+        zipper = zipfile.ZipFile('/tmp/'+rd+'/' + archivename, mode='a')
+        for key in listKeys[i]:
+            tempPath = '/tmp/'+rd+'/'+key.split('/')[2]
+            print("downloading : " + key)
+            s3cli.download_file(bucket, key, tempPath)
+            if not key.split('/')[2] in zipper.namelist():
+                zipper.write(tempPath, key.split('/')[2])
+            os.remove(tempPath)
+        zipper.close()
+        data = open('/tmp/'+rd+'/' + archivename, 'rb')
+        s3res.Bucket(bucketArch).put_object(Key='archives/'+event + '/' + archivename, Body=data)
+        os.remove('/tmp/'+rd+'/' + archivename)
+        
+def get_archive_name(event):
+    found = False
+    i=0
+    while not found:
+        i+=1
+        if not exists(bucketArch, 'archives/'+event + '/archive-' + str(i) + '.zip'):
+            found = True
+    filename = 'archive-' + str(i-1) + '.zip'
+    obj = s3res.ObjectSummary(bucketArch, 'archives/'+event + '/' + filename)
+    size = obj.size;
+    if size > 512000000-512000000/3:
+        filename = 'archive-'+str(i)+'.zip'
+        rd = '/tmp/' + randomString(20) + '/'
+        os.makedirs(rd)
+        zf = zipfile.ZipFile(rd + filename, mode='w')
+        zf.close()
+        data = open(rd + filename, 'rb')
+        s3res.Bucket(bucketArch).put_object(Key='archives/'+event + '/' + filename, Body=data)
+        os.remove(rd + filename)
+    return filename
     
-def sendArchive(listEventUpdated, listArchive, listZippers):
-    for i in range(len(listEventUpdated)):
-        listZippers[i].close()
-        data = open('/tmp/'+listArchive[i]+'/archive.zip', 'rb')
-        s3res.Bucket(bucketArch).put_object(Key='archives/'+listEventUpdated[i] + '/archive.zip', Body=data)
-        os.remove('/tmp/'+listArchive[i]+'/archive.zip')
     
+def exists(bucket, key):
+    for obj in s3res.Bucket(bucket).objects.all():
+        if key == obj.key:
+            return True
+    return False
         
 def randomString(length):
     return ''.join(random.choice(string.lowercase) for i in range(length))
+
+def print_disk_info():
+    f = os.statvfs("/tmp")
+    print ("preferred block size => " + str(f[statvfs.F_BSIZE]))
+    print ("fundamental block size => " + str(f[statvfs.F_FRSIZE]))
+    print ("total blocks => " + str(f[statvfs.F_BLOCKS]))
+    print ("total free blocks => " + str(f[statvfs.F_BFREE]))
+    print ("available blocks => " + str(f[statvfs.F_BAVAIL]))
+    print ("total file nodes => " + str(f[statvfs.F_FILES]))
+    print ("total free nodes => " + str(f[statvfs.F_FFREE]))
+    print ("available nodes => " + str(f[statvfs.F_FAVAIL]))
+    print ("max file name length => " + str(f[statvfs.F_NAMEMAX]))
+    
+def clear_tmp():
+    folder = '/tmp'
+    for the_file in os.listdir(folder):
+        file_path = os.path.join(folder, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+            #elif os.path.isdir(file_path): shutil.rmtree(file_path)
+        except Exception as e:
+            print(e)

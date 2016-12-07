@@ -90,6 +90,14 @@ def addEmptyArch(remote, local):
 	data = open(local, 'rb')
 	s3res.Bucket(bucketArch).put_object(Key=remote, Body=data)
 	os.remove(local)
+
+def get_available_archives(event):
+	listKeys = []
+	for a in s3res.Bucket(bucketArch).objects.all():
+		ev = a.key.split('/')[1]
+		if ev == event:
+			listKeys.append(a.key)
+	return listKeys
 	
 def randomString(length):
 	return ''.join(random.choice(string.lowercase) for i in range(length))
