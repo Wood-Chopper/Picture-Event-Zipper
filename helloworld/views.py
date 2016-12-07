@@ -96,8 +96,7 @@ def write_file(path, file):
 
 def get_link():
 	random = randomString(20)
-	if not os.path.exists('upload/'+random+'/'):
-		os.makedirs('upload/'+random+'/')
+	if not id in S3Utils.get_events_id():
 		rd = '/tmp/' + randomString(20) + '/'
 		os.makedirs(rd)
 		zf = zipfile.ZipFile(rd + 'archive-1.zip', mode='w')
@@ -111,7 +110,7 @@ def randomString(length):
 	return ''.join(random.choice(string.lowercase) for i in range(length))
 
 def exist(id):
-	return os.path.exists('upload/'+id+'/')
+	return (id in S3Utils.get_events_id())
 
 def test1(request):
 	s3res = boto3.resource('s3')

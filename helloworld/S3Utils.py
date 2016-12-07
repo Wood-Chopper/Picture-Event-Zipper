@@ -98,6 +98,13 @@ def get_available_archives(event):
 		if ev == event:
 			listKeys.append(a.key)
 	return listKeys
+
+def get_events_id():
+	listEvents = []
+	for a in s3res.Bucket(bucketArch).objects.all():
+		ev = a.key.split('/')[1]
+		listEvents.append(ev)
+	return list(set(listEvents))
 	
 def randomString(length):
 	return ''.join(random.choice(string.lowercase) for i in range(length))
