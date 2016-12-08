@@ -10,10 +10,17 @@ import shutil
 import sys,os,statvfs
 import hashlib
 
+name = os.environ['AWS_LAMBDA_FUNCTION_NAME']
+SQS=None
+if name == 'S3SQSZIP':
+    SQS='s3tolambda'
+else:
+    SQS='s3tolambda' + name.split('-')[1]
+
 print('Loading function')
 sqscli = boto3.client('sqs')
 sqsres = boto3.resource('sqs')
-queue = sqsres.get_queue_by_name(QueueName=os.environ['SQS'])
+queue = sqsres.get_queue_by_name(QueueName=SQS)
 
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
