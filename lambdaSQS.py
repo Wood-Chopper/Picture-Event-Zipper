@@ -8,11 +8,12 @@ import random
 import string
 import shutil
 import sys,os,statvfs
+import hashlib
 
 print('Loading function')
 sqscli = boto3.client('sqs')
 sqsres = boto3.resource('sqs')
-queue = sqsres.get_queue_by_name(QueueName='s3tolambda')
+queue = sqsres.get_queue_by_name(QueueName=os.environ['SQS'])
 
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
@@ -22,13 +23,14 @@ bucketArch = 'pictureeventarchivejn'
 
 def lambda_handler(event, context):
     
+    print('Lambda id : ' + os.environ['id_lambda'])
     print_disk_info()
     clear_tmp()
     
     messages = queue.receive_messages(MaxNumberOfMessages=10)
     temp = queue.receive_messages(MaxNumberOfMessages=10)
     sizetot = get_size(temp)
-    while len(temp) > 0 and sizetot < 512000000/6: # 512Mo/6 maximum pour ne pas saturer la memoire
+    while len(temp) > 0 and sizetot < 512000000/6 and len(messages)<200: # 512Mo/6 maximum pour ne pas saturer la memoire
         messages += temp
         temp = queue.receive_messages(MaxNumberOfMessages=10)
         sizetot += get_size(temp)
@@ -36,13 +38,13 @@ def lambda_handler(event, context):
     print(str(len(messages)) + " pulled")
     listEventUpdated = []
     listKeys = []
+    listMessages = []
     for message in messages:
+        message.change_visibility(VisibilityTimeout=60)
         parsed = json.loads(message.body)
         key = parsed['Records'][0]['s3']['object']['key']
-        addFileToArch(key, listEventUpdated, listKeys)
-        result = message.delete()
-        print("Deleting message : " + str(result))
-    sendArchive(listEventUpdated, listKeys)
+        addFileToArch(message, key, listEventUpdated, listKeys, listMessages)
+    sendArchive(listEventUpdated, listKeys, listMessages)
     return None
     
 def get_size(messages):
@@ -52,15 +54,17 @@ def get_size(messages):
         size += parsed['Records'][0]['s3']['object']['size']
     return size
 
-def addFileToArch(key, listEvent, listKeys):
+def addFileToArch(message, key, listEvent, listKeys, listMessages):
     event_name = key.split('/')[1]
     if not event_name in listEvent:
         listEvent.append(event_name)
         listKeys.append([])
+        listMessages.append([])
     indexEvent = listEvent.index(event_name)
     listKeys[indexEvent].append(key)
+    listMessages[indexEvent].append(message)
     
-def sendArchive(listEventUpdated, listKeys):
+def sendArchive(listEventUpdated, listKeys, listMessages):
         
     for i in range (0, len(listEventUpdated)):
         event = listEventUpdated[i]
@@ -69,6 +73,7 @@ def sendArchive(listEventUpdated, listKeys):
         archivename = get_archive_name(event)
         print('downloading : archives/'+event+'/' + archivename)
         s3cli.download_file(bucketArch, 'archives/'+event+'/' + archivename, '/tmp/'+rd+'/' + archivename)
+        chks = md5('/tmp/'+rd+'/' + archivename)
         zipper = zipfile.ZipFile('/tmp/'+rd+'/' + archivename, mode='a')
         for key in listKeys[i]:
             tempPath = '/tmp/'+rd+'/'+key.split('/')[2]
@@ -78,9 +83,18 @@ def sendArchive(listEventUpdated, listKeys):
                 zipper.write(tempPath, key.split('/')[2])
             os.remove(tempPath)
         zipper.close()
-        data = open('/tmp/'+rd+'/' + archivename, 'rb')
-        s3res.Bucket(bucketArch).put_object(Key='archives/'+event + '/' + archivename, Body=data)
-        os.remove('/tmp/'+rd+'/' + archivename)
+        
+        if chks == s3cli.head_object(Bucket=bucketArch,Key='archives/'+event + '/' + archivename)['ETag'][1:-1]:
+            data = open('/tmp/'+rd+'/' + archivename, 'rb')
+            s3res.Bucket(bucketArch).put_object(Key='archives/'+event + '/' + archivename, Body=data)
+            os.remove('/tmp/'+rd+'/' + archivename)
+            for message in listMessages[i]:
+                result = message.delete()
+                print("Deleting message : " + str(result))
+        else:
+            print("Overlapping error")
+            for message in listMessages[i]:
+                message.change_visibility(VisibilityTimeout=0)
         
 def get_archive_name(event):
     found = False
@@ -112,6 +126,13 @@ def exists(bucket, key):
         
 def randomString(length):
     return ''.join(random.choice(string.lowercase) for i in range(length))
+    
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 def print_disk_info():
     f = os.statvfs("/tmp")
