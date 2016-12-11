@@ -26,6 +26,7 @@ def index(request):
 	else:
 		return render_to_response('index.html', context_instance=RequestContext(request))
 
+@csrf_exempt
 def event(request, id):
 	if not exist(id):
 		return redirect('/')
