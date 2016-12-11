@@ -16,7 +16,9 @@ import string
 import zipfile
 import threading
 from subprocess import call
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def index(request):
 	if request.method == 'POST':
 		event_id = get_link()
