@@ -28,9 +28,14 @@
 						{{ form }}
 						<input type="submit">
 					</form>
-					{% if filename %}
+					{% if filenames %}
 					<div class="alert alert-success" role="alert">
-						{{ filename }} will be processed soon, it's safe to close the page.
+						Your upload will be processed soon will be processed soon, it's safe to close the page.<br>
+						<div style="max-height:calc(30%);border:1px solid #ccc;overflow:auto;">
+						{% for filename in filenames %}
+							<span>{{ filename }}</span><br>
+						{% endfor %}
+						</div>
 					</div>
 					{% endif %}
 				</div>

@@ -34,8 +34,7 @@ def event(request, id):
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():
-			handle_uploaded_file('upload/' + str(id) + '/',request.FILES['file'], request.FILES['file'].name)
-			context['filename'] = request.FILES['file'].name
+			context['filenames'] = handle_uploaded_file('upload/' + str(id) + '/',request.FILES['file'], request.FILES['file'].name)
 			
 		form = PictureForm()
 		context['form'] = form
@@ -59,6 +58,7 @@ def handle_uploaded_file(folder, file, filename):
 	localTempPath = folder + randFolder + filename
 	filepath = folder + filename
 	pictures = []
+	returned = []
 
 	if not os.path.exists(folder + randFolder):
 		os.makedirs(folder + randFolder)
@@ -79,15 +79,17 @@ def handle_uploaded_file(folder, file, filename):
 				outpath = folder + randFolder
 				z.extract(name, outpath)
 				pictures.append(folder + randFolder + name)
+				returned.append(name)
 		fh.close()
 		print("Zip extracted")
 		os.remove(localTempPath)
 	else:
 		write_file(localTempPath, file)
 		pictures.append(localTempPath)
+		returned = [filename]
 
 	threading.Thread(target=S3Utils.addPictures, args=[pictures]).start()
-	#S3Utils.addPictures(pictures)
+	return returned
 
 def write_file(path, file):
 	with open(path, 'wb+') as destination:
