@@ -10,12 +10,7 @@ import shutil
 import sys,os,statvfs
 import hashlib
 
-name = os.environ['AWS_LAMBDA_FUNCTION_NAME']
-SQS=None
-if name == 'S3SQSZIP':
-    SQS='s3tolambda'
-else:
-    SQS='s3tolambda' + name.split('-')[1]
+SQS='s3tolambda'
 
 print('Loading function')
 sqscli = boto3.client('sqs')
@@ -29,8 +24,6 @@ bucketArch = 'pictureeventarchivejn'
 
 
 def lambda_handler(event, context):
-    
-    print('Lambda id : ' + os.environ['id_lambda'])
     print_disk_info()
     clear_tmp()
     

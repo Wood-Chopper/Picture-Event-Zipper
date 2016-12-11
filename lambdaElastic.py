@@ -10,7 +10,7 @@ import shutil
 import sys,os,statvfs
 import hashlib
 
-lastQueue = None
+lastLambda = 0
 
 print('Loading function')
 sqscli = boto3.client('sqs')
@@ -18,81 +18,74 @@ sqsres = boto3.resource('sqs')
 lambdacli = boto3.client('lambda')
 cwecli = boto3.client('events')
 
-def get_last_SQS():
-    queuesURL = sqscli.list_queues(QueueNamePrefix='s3toLambdaElastic')
+def get_last_Lambda():
+    lambdasURL = lambdacli.list_functions()['Functions']
+    
     max=0
-    for url in queuesURL['QueueUrls']:
-        print(sqsres.Queue(url).attributes['QueueArn'])
-        arn = sqsres.Queue(url).attributes['QueueArn']
-        spl = arn.split('-')
-        id = int(spl[len(spl)-1])
-        if max < id:
-            max = id
-    print(id)
-    return int(id)
+    for function in lambdasURL:
+        name = function['FunctionName']
+        if 'S3SQSZIP-' in name:
+            print(name)
+            spl = name.split('-')
+            id = int(spl[len(spl)-1])
+            if max < id:
+                max = id
+    print(max)
+    return max
 
-lastSQS=get_last_SQS()
+lastLambda=get_last_Lambda()
 
 def lambda_handler(event, context):
-    global LastSQS
-    global lastQueue
-    lastQueue = sqsres.get_queue_by_name(QueueName="s3toLambdaElastic-"+str(lastSQS))
-    lastQueueMessages = int(lastQueue.attributes['ApproximateNumberOfMessages']) + int(lastQueue.attributes['ApproximateNumberOfMessagesNotVisible'])
-    print('lastQueueMessages = ' + str(lastQueueMessages))
-    if lastQueueMessages > 0:
+    queue = sqsres.get_queue_by_name(QueueName="s3tolambda")
+    queueMessages = int(queue.attributes['ApproximateNumberOfMessages'])
+    print('queueMessages = ' + str(queueMessages))
+    if queueMessages > 200:
         print("Addind a node")
         addNode()
-        return None
-    if lastSQS==1:
-        return None
-    secondLastQueue = sqsres.get_queue_by_name(QueueName='s3toLambdaElastic-'+str(lastSQS-1))
-    secondLastQueueMessages = int(secondLastQueue.attributes['ApproximateNumberOfMessages']) + int(secondLastQueue.attributes['ApproximateNumberOfMessagesNotVisible'])
-    if lastQueueMessages + secondLastQueueMessages == 0:
-        print("Deleting a node")
+    elif queueMessages == 0 and lastLambda > 0:
         print("Removing a node")
         removeNode()
     
 def addNode():
-    global lastSQS
-    sqscli.create_queue(QueueName="s3toLambdaElastic-" + str(lastSQS+1), Attributes={'VisibilityTimeout' : '60'})
-    newQueue = sqsres.get_queue_by_name(QueueName="s3toLambdaElastic-"+str(lastSQS+1))
-    policy = {
-        "maxReceiveCount" : 1000,
-        "deadLetterTargetArn": newQueue.attributes['QueueArn']
-    }
-    lastQueue.set_attributes(Attributes={'RedrivePolicy': json.dumps(policy)})
-    lastSQS+=1
+    global lastLambda
+    lastLambda += 1
     exampleLambda = lambdacli.get_function(FunctionName='S3SQSZIP')
     functionArn = lambdacli.create_function(
-        FunctionName='S3SQSZIP-'+str(lastSQS),
+        FunctionName='S3SQSZIP-'+str(lastLambda),
         Runtime='python2.7',
         Role=exampleLambda['Configuration']['Role'],
         Handler=exampleLambda['Configuration']['Handler'],
         Code={'S3Bucket': 'pictureeventressources', 'S3Key': 'Lambda.zip'},
-        Timeout=60,
-        MemorySize=512
+        Timeout=exampleLambda['Configuration']['Timeout'],
+        MemorySize=exampleLambda['Configuration']['MemorySize']
     )['FunctionArn']
     ruleArn = cwecli.put_rule(
-        Name='Schedule-' + str(lastSQS),
+        Name='Schedule_' + str(lastLambda),
         ScheduleExpression='rate(1 minute)',
         State='ENABLED',
     )['RuleArn']
     cwecli.put_targets(
-        Rule='Schedule-' + str(lastSQS),
+        Rule='Schedule_' + str(lastLambda),
         Targets=[
             {
-                'Id': 'Invoke-' + str(lastSQS),
+                'Id': 'Invoke-' + str(lastLambda),
                 'Arn': functionArn
             }
         ]
     )
+    cwecli.enable_rule(Name='Schedule_' + str(lastLambda))
+    lambdacli.add_permission(
+        FunctionName=functionArn,
+        StatementId='Trigger',
+        Action='lambda:*',
+        Principal='*'#ruleArn
+    )
     
 def removeNode():
-    global lastSQS
-    lambdacli.delete_function(FunctionName='S3SQSZIP-'+str(lastSQS))
-    cwecli.remove_targets(Rule='Schedule-' + str(lastSQS), Ids=['Invoke-' + str(lastSQS)])
-    cwecli.delete_rule(Name='Schedule-' + str(lastSQS))
-    sqsres.get_queue_by_name(QueueName="s3toLambdaElastic-"+str(lastSQS)).delete()
-    lastSQS-=1
+    global lastLambda
+    lambdacli.delete_function(FunctionName='S3SQSZIP-'+str(lastLambda))
+    cwecli.remove_targets(Rule='Schedule_' + str(lastLambda), Ids=['Invoke-' + str(lastLambda)])
+    cwecli.delete_rule(Name='Schedule_' + str(lastLambda))
+    lastLambda -= 1
 
         
