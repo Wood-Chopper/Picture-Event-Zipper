@@ -17,14 +17,18 @@ import zipfile
 import threading
 from subprocess import call
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 @csrf_exempt
 def index(request):
+	context = {}
+	context['region'] = settings.REGION
+	context['static'] = settings.BUCKET_STATIC
 	if request.method == 'POST':
 		event_id = get_link()
 		return redirect('/event/'+event_id)
 	else:
-		return render_to_response('index.html', context_instance=RequestContext(request))
+		return render_to_response('index.html', context, context_instance=RequestContext(request))
 
 @csrf_exempt
 def event(request, id):
@@ -34,6 +38,9 @@ def event(request, id):
 	context = {}
 	context['id'] = id
 	context['archives'] = S3Utils.get_available_archives(id)
+	context['region'] = settings.REGION
+	context['static'] = settings.BUCKET_STATIC
+	context['bucket_archives'] = settings.BUCKET_ARCHIVES
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():

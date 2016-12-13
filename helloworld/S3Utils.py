@@ -5,11 +5,12 @@ import string
 import os
 from subprocess import call
 from collections import defaultdict
+from django.conf import settings
 
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
-bucket = 'pictureeventjn'
-bucketArch = 'pictureeventarchivejn'
+bucket = settings.BUCKET_IMAGES
+bucketArch = settings.BUCKET_ARCHIVES
 
 uploaded = defaultdict(lambda: 0)
 
@@ -94,16 +95,18 @@ def addEmptyArch(remote, local):
 def get_available_archives(event):
 	listKeys = []
 	for a in s3res.Bucket(bucketArch).objects.all():
-		ev = a.key.split('/')[1]
-		if ev == event:
-			listKeys.append(a.key)
+		if '/' in a.key:
+			ev = a.key.split('/')[1]
+			if ev == event:
+				listKeys.append(a.key)
 	return listKeys
 
 def get_events_id():
 	listEvents = []
 	for a in s3res.Bucket(bucketArch).objects.all():
-		ev = a.key.split('/')[1]
-		listEvents.append(ev)
+		if '/' in a.key:
+			ev = a.key.split('/')[1]
+			listEvents.append(ev)
 	return list(set(listEvents))
 	
 def randomString(length):

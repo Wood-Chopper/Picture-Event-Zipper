@@ -1,13 +1,12 @@
-BUCKET_PREFIX=np-$(openssl rand -hex 5)
-LAMBDA_PREFIX=np-$(openssl rand -hex 5)
-QUEUE=np-$(openssl rand -hex 5)
-CWE_PREFIX=np-$(openssl rand -hex 5)
-RULE_PREFIX=np-$(openssl rand -hex 5)
-LAMBDA_ROLE=np-$(openssl rand -hex 5)
-SCHEDULE_PREFIX=np-$(openssl rand -hex 5)
+BUCKET_PREFIX=np-$(openssl rand -hex 8)
+LAMBDA_PREFIX=np-$(openssl rand -hex 8)
+QUEUE=np-$(openssl rand -hex 8)
+CWE_PREFIX=np-$(openssl rand -hex 8)
+RULE_PREFIX=np-$(openssl rand -hex 8)
+LAMBDA_ROLE=np-$(openssl rand -hex 8)
+SCHEDULE_PREFIX=np-$(openssl rand -hex 8)
 ACCOUNT_ID=$(aws ec2 describe-security-groups --group-names 'Default' --query 'SecurityGroups[0].OwnerId' --output text)
 REGION=$(aws configure get default.region)
-
 
 
 aws iam create-role --role-name $LAMBDA_ROLE-lambda --assume-role-policy-document file://json/lambda_role.json
@@ -18,11 +17,11 @@ aws iam attach-role-policy --role-name $LAMBDA_ROLE-lambda --policy-arn arn:aws:
 aws iam attach-role-policy --role-name $LAMBDA_ROLE-lambda --policy-arn arn:aws:iam::aws:policy/CloudWatchEventsFullAccess
 aws iam attach-role-policy --role-name $LAMBDA_ROLE-lambda --policy-arn arn:aws:iam::aws:policy/AWSLambdaFullAccess
 
-aws s3api create-bucket --bucket $BUCKET_PREFIX-static
-aws s3api put-object --bucket $BUCKET_PREFIX-static --key bootstrap.css --body s3static/bootstrap.css
-aws s3api put-object --bucket $BUCKET_PREFIX-static --key pictureevent.css --body s3static/pictureevent.css
-aws s3api put-object --bucket $BUCKET_PREFIX-static --key eventimg.jpg --body s3static/eventimg.jpg
-aws s3api put-object --bucket $BUCKET_PREFIX-static --key indeximg.jpg --body s3static/indeximg.jpg
+aws s3api create-bucket --bucket $BUCKET_PREFIX-static --create-bucket-configuration LocationConstraint=$REGION
+aws s3api put-object --bucket $BUCKET_PREFIX-static --key bootstrap.css --body s3static/bootstrap.css --content-type text/css
+aws s3api put-object --bucket $BUCKET_PREFIX-static --key pictureevent.css --body s3static/pictureevent.css --content-type text/css
+aws s3api put-object --bucket $BUCKET_PREFIX-static --key eventimg.jpg --body s3static/eventimg.jpg --content-type image/jpeg
+aws s3api put-object --bucket $BUCKET_PREFIX-static --key indeximg.jpg --body s3static/indeximg.jpg --content-type image/jpeg
 aws s3api put-bucket-website --bucket $BUCKET_PREFIX-static --website-configuration file://json/s3staticweb.json
 cat json/s3staticpoltemp.json | replace BUCKETNAME $BUCKET_PREFIX-static > json/s3staticpol.json 
 aws s3api put-bucket-policy --bucket $BUCKET_PREFIX-static --policy file://json/s3staticpol.json
@@ -40,10 +39,10 @@ aws s3api put-bucket-notification --bucket $BUCKET_PREFIX-images \
 --notification-configuration file://json/s3notif.json
 
 
-aws s3api create-bucket --bucket $BUCKET_PREFIX-archives
+aws s3api create-bucket --bucket $BUCKET_PREFIX-archives --create-bucket-configuration LocationConstraint=$REGION
 cat json/s3archivespoltemp.json | replace BUCKETNAME $BUCKET_PREFIX-archives | replace ACCOUNT_ID $ACCOUNT_ID | replace LAMBDA_ROLE $LAMBDA_ROLE-lambda > json/s3archivespol.json 
 aws s3api put-bucket-policy --bucket $BUCKET_PREFIX-archives --policy file://json/s3archivespol.json
-aws s3api put-object --bucket $BUCKET_PREFIX-archives --key index.html --body s3archives/index.html
+aws s3api put-object --bucket $BUCKET_PREFIX-archives --key index.html --body s3archives/index.html --content-type text/html
 aws s3api put-bucket-website --bucket $BUCKET_PREFIX-archives --website-configuration file://json/s3archivesweb.json
 
 
@@ -106,7 +105,9 @@ aws lambda add-permission --function-name manager-$LAMBDA_PREFIX \
 --action "lambda:*" \
 --principal "*"
 
-eb init
-eb create scratch-env
-eb open
+cat helloworld/settings.py.template | replace [[BUCKET_ARCHIVES]] $BUCKET_PREFIX-archives | replace [[BUCKET_IMAGES]] $BUCKET_PREFIX-images | replace [[REGION]] $REGION | replace [[BUCKET_STATIC]] $BUCKET_PREFIX-static > helloworld/settings.py
 
+eb init
+eb create group-a-env
+eb deploy --staged
+eb open
