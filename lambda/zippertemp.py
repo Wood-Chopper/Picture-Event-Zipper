@@ -40,10 +40,11 @@ def lambda_handler(event, context):
     listKeys = []
     listMessages = []
     for message in messages:
-        message.change_visibility(VisibilityTimeout=60)
         parsed = json.loads(message.body)
-        key = parsed['Records'][0]['s3']['object']['key']
-        addFileToArch(message, key, listEventUpdated, listKeys, listMessages)
+        if 'Records' in parsed:
+            message.change_visibility(VisibilityTimeout=60)
+            key = parsed['Records'][0]['s3']['object']['key']
+            addFileToArch(message, key, listEventUpdated, listKeys, listMessages)
     sendArchive(listEventUpdated, listKeys, listMessages)
     return None
     
@@ -51,7 +52,8 @@ def get_size(messages):
     size = 0
     for message in messages:
         parsed = json.loads(message.body)
-        size += parsed['Records'][0]['s3']['object']['size']
+        if 'Records' in message:
+            size += parsed['Records'][0]['s3']['object']['size']
     return size
 
 def addFileToArch(message, key, listEvent, listKeys, listMessages):
