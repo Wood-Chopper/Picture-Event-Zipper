@@ -1,0 +1,25 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "PublicReadGetObject",
+			"Effect": "Allow",
+			"Principal": "*",
+			"Action": "s3:GetObject",
+			"Resource": "arn:aws:s3:::BUCKETNAME/*"
+		},
+		{
+			"Sid": "EBPutObject",
+			"Effect": "Allow",
+			"Principal": {
+				"AWS": [
+					"arn:aws:iam::ACCOUNT_ID:role/aws-elasticbeanstalk-ec2-role",
+					"arn:aws:iam::ACCOUNT_ID:role/aws-elasticbeanstalk-service-role",
+					"arn:aws:iam::ACCOUNT_ID:role/LAMBDA_ROLE"
+				]
+			},
+			"Action": "s3:PutObject",
+			"Resource": "arn:aws:s3:::BUCKETNAME/*"
+		}
+	]
+}

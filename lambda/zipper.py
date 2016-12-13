@@ -10,7 +10,9 @@ import shutil
 import sys,os,statvfs
 import hashlib
 
-SQS='s3tolambda'
+SQS= 'np-12081b8fe0'
+bucket = 'np-10f230aefa-images'
+bucketArch = 'np-10f230aefa-archives'
 
 print('Loading function')
 sqscli = boto3.client('sqs')
@@ -19,8 +21,6 @@ queue = sqsres.get_queue_by_name(QueueName=SQS)
 
 s3res = boto3.resource('s3')
 s3cli = boto3.client('s3')
-bucket = 'pictureeventjn'
-bucketArch = 'pictureeventarchivejn'
 
 
 def lambda_handler(event, context):

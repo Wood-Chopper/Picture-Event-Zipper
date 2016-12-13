@@ -18,13 +18,18 @@ sqsres = boto3.resource('sqs')
 lambdacli = boto3.client('lambda')
 cwecli = boto3.client('events')
 
+bucket_lambda = 'np-10f230aefa-lambda'
+queuename = 'np-12081b8fe0'
+lambdaprefix = 'np-cfe203515b'
+schedulename = 'np-34f57430fe'
+
 def get_last_Lambda():
     lambdasURL = lambdacli.list_functions()['Functions']
     
     max=0
     for function in lambdasURL:
         name = function['FunctionName']
-        if 'S3SQSZIP-' in name:
+        if lambdaprefix+'-' in name:
             print(name)
             spl = name.split('-')
             id = int(spl[len(spl)-1])
@@ -36,36 +41,36 @@ def get_last_Lambda():
 lastLambda=get_last_Lambda()
 
 def lambda_handler(event, context):
-    queue = sqsres.get_queue_by_name(QueueName="s3tolambda")
+    queue = sqsres.get_queue_by_name(QueueName=queuename)
     queueMessages = int(queue.attributes['ApproximateNumberOfMessages'])
     print('queueMessages = ' + str(queueMessages))
     if queueMessages > 200:
         print("Addind a node")
         addNode()
-    elif queueMessages == 0 and lastLambda > 0:
+    elif queueMessages < 50 and lastLambda > 0:
         print("Removing a node")
         removeNode()
     
 def addNode():
     global lastLambda
     lastLambda += 1
-    exampleLambda = lambdacli.get_function(FunctionName='S3SQSZIP')
+    exampleLambda = lambdacli.get_function(FunctionName=lambdaprefix)
     functionArn = lambdacli.create_function(
-        FunctionName='S3SQSZIP-'+str(lastLambda),
+        FunctionName=lambdaprefix+'-'+str(lastLambda),
         Runtime='python2.7',
         Role=exampleLambda['Configuration']['Role'],
         Handler=exampleLambda['Configuration']['Handler'],
-        Code={'S3Bucket': 'pictureeventressources', 'S3Key': 'Lambda.zip'},
+        Code={'S3Bucket': bucket_lambda, 'S3Key': 'zipper.zip'},
         Timeout=exampleLambda['Configuration']['Timeout'],
         MemorySize=exampleLambda['Configuration']['MemorySize']
     )['FunctionArn']
     ruleArn = cwecli.put_rule(
-        Name='Schedule_' + str(lastLambda),
+        Name=schedulename+'_' + str(lastLambda),
         ScheduleExpression='rate(1 minute)',
         State='ENABLED',
     )['RuleArn']
     cwecli.put_targets(
-        Rule='Schedule_' + str(lastLambda),
+        Rule=schedulename+'_' + str(lastLambda),
         Targets=[
             {
                 'Id': 'Invoke-' + str(lastLambda),
@@ -73,7 +78,7 @@ def addNode():
             }
         ]
     )
-    cwecli.enable_rule(Name='Schedule_' + str(lastLambda))
+    cwecli.enable_rule(Name=schedulename+'_' + str(lastLambda))
     lambdacli.add_permission(
         FunctionName=functionArn,
         StatementId='Trigger',
@@ -83,9 +88,9 @@ def addNode():
     
 def removeNode():
     global lastLambda
-    lambdacli.delete_function(FunctionName='S3SQSZIP-'+str(lastLambda))
-    cwecli.remove_targets(Rule='Schedule_' + str(lastLambda), Ids=['Invoke-' + str(lastLambda)])
-    cwecli.delete_rule(Name='Schedule_' + str(lastLambda))
+    lambdacli.delete_function(FunctionName=lambdaprefix+'-'+str(lastLambda))
+    cwecli.remove_targets(Rule=schedulename+'_' + str(lastLambda), Ids=['Invoke-' + str(lastLambda)])
+    cwecli.delete_rule(Name=schedulename+'_' + str(lastLambda))
     lastLambda -= 1
 
         

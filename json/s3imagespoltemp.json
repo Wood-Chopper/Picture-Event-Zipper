@@ -1,0 +1,21 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "GetObject",
+			"Effect": "Allow",
+			"Principal": {
+				"AWS": [
+					"arn:aws:iam::ACCOUNT_ID:role/aws-elasticbeanstalk-service-role",
+					"arn:aws:iam::ACCOUNT_ID:role/LAMBDA_ROLE",
+					"arn:aws:iam::ACCOUNT_ID:role/aws-elasticbeanstalk-ec2-role"
+				]
+			},
+			"Action": "s3:*",
+			"Resource": [
+				"arn:aws:s3:::BUCKETNAME/*",
+				"arn:aws:s3:::BUCKETNAME"
+			]
+		}
+	]
+}
