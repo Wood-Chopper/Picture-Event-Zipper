@@ -18,10 +18,10 @@ sqsres = boto3.resource('sqs')
 lambdacli = boto3.client('lambda')
 cwecli = boto3.client('events')
 
-bucket_lambda = 'np-10f230aefa-lambda'
-queuename = 'np-12081b8fe0'
-lambdaprefix = 'np-cfe203515b'
-schedulename = 'np-34f57430fe'
+bucket_lambda = 'np-7122f38739-lambda'
+queuename = 'np-8f730ee7f5'
+lambdaprefix = 'np-2f91b8ea89'
+schedulename = 'np-1d51b1f2e6'
 
 def get_last_Lambda():
     lambdasURL = lambdacli.list_functions()['Functions']

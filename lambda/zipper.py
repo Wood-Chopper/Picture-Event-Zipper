@@ -10,9 +10,9 @@ import shutil
 import sys,os,statvfs
 import hashlib
 
-SQS= 'np-12081b8fe0'
-bucket = 'np-10f230aefa-images'
-bucketArch = 'np-10f230aefa-archives'
+SQS= 'np-8f730ee7f5'
+bucket = 'np-7122f38739-images'
+bucketArch = 'np-7122f38739-archives'
 
 print('Loading function')
 sqscli = boto3.client('sqs')

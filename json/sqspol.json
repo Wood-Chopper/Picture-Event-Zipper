@@ -1,0 +1,1 @@
+{"Policy": "{\"Version\": \"2008-10-17\",\"Id\": \"Notif\",\"Statement\": [{\"Sid\": \"Notification\",\"Effect\": \"Allow\",\"Principal\": {\"AWS\": \"*\"  },\"Action\": [\"SQS:SendMessage\"],\"Resource\": \"arn:aws:sqs:us-west-2:459293086294:np-8f730ee7f5\",\"Condition\": {\"StringEquals\": {\"aws:SourceArn\": \"arn:aws:s3:::np-7122f38739-images\"}}}]}"}

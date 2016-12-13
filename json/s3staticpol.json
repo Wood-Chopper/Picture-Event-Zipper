@@ -6,7 +6,7 @@
 			"Effect": "Allow",
 			"Principal": "*",
 			"Action": "s3:GetObject",
-			"Resource": "arn:aws:s3:::np-3fbfb443f9-static/*"
+			"Resource": "arn:aws:s3:::np-7122f38739-static/*"
 		}
 	]
 }

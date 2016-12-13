@@ -7,10 +7,10 @@ import S3Utils
 import threading
 
 # Uncomment the next two lines to enable the admin:
-from django.contrib import admin
-admin.autodiscover()
+#from django.contrib import admin
+#admin.autodiscover()
 
-def uploadOldFiles():#TOREDO
+def uploadOldFiles():
     events = os.listdir('upload')
     filesLeft = []
     for event in events:
