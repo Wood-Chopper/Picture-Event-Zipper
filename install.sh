@@ -106,3 +106,7 @@ aws lambda add-permission --function-name manager-$LAMBDA_PREFIX \
 --action "lambda:*" \
 --principal "*"
 
+eb init
+eb create scratch-env
+eb open
+
