@@ -1,13 +1,21 @@
 BUCKET_PREFIX=np-$(openssl rand -hex 8)
 LAMBDA_PREFIX=np-$(openssl rand -hex 8)
 QUEUE=np-$(openssl rand -hex 8)
-CWE_PREFIX=np-$(openssl rand -hex 8)
 RULE_PREFIX=np-$(openssl rand -hex 8)
 LAMBDA_ROLE=np-$(openssl rand -hex 8)
 SCHEDULE_PREFIX=np-$(openssl rand -hex 8)
 ACCOUNT_ID=$(aws ec2 describe-security-groups --group-names 'Default' --query 'SecurityGroups[0].OwnerId' --output text)
 REGION=$(aws configure get default.region)
 
+mkdir install
+echo $BUCKET_PREFIX > install/BUCKET_PREFIX
+echo $LAMBDA_PREFIX > install/LAMBDA_PREFIX
+echo $QUEUE > install/QUEUE
+echo $RULE_PREFIX > install/RULE_PREFIX
+echo $LAMBDA_ROLE > install/LAMBDA_ROLE
+echo $SCHEDULE_PREFIX > install/SCHEDULE_PREFIX
+echo $ACCOUNT_ID > install/ACCOUNT_ID
+echo $REGION > install/REGION
 
 aws iam create-role --role-name $LAMBDA_ROLE-lambda --assume-role-policy-document file://json/lambda_role.json
 
@@ -96,7 +104,7 @@ aws events put-rule --name manager$SCHEDULE_PREFIX \
 --state ENABLED
 
 aws events put-targets --rule manager$SCHEDULE_PREFIX \
---targets Id=Invoke-0,Arn=arn:aws:lambda:$REGION:$ACCOUNT_ID:function:manager-$LAMBDA_PREFIX
+--targets Id=Invoke-manager,Arn=arn:aws:lambda:$REGION:$ACCOUNT_ID:function:manager-$LAMBDA_PREFIX
 
 aws events enable-rule --name manager$SCHEDULE_PREFIX
 
@@ -112,5 +120,5 @@ eb create group-a-env
 eb deploy --staged
 aws iam attach-role-policy --role-name aws-elasticbeanstalk-ec2-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 aws iam attach-role-policy --role-name aws-elasticbeanstalk-service-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
-
+sleep 10
 eb open
