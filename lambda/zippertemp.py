@@ -52,7 +52,7 @@ def get_size(messages):
     size = 0
     for message in messages:
         parsed = json.loads(message.body)
-        if 'Records' in message:
+        if 'Records' in parsed:
             size += parsed['Records'][0]['s3']['object']['size']
     return size
 
