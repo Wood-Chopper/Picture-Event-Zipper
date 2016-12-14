@@ -110,4 +110,7 @@ cat helloworld/settings.py.template | replace [[BUCKET_ARCHIVES]] $BUCKET_PREFIX
 eb init
 eb create group-a-env
 eb deploy --staged
+aws iam attach-role-policy --role-name aws-elasticbeanstalk-ec2-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+aws iam attach-role-policy --role-name aws-elasticbeanstalk-service-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+
 eb open
