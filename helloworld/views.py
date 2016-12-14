@@ -18,6 +18,10 @@ import threading
 from subprocess import call
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from shutil import copyfile
+from shutil import rmtree
+import imghdr
+import sys
 
 @csrf_exempt
 def index(request):
@@ -44,7 +48,7 @@ def event(request, id):
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():
-			context['filenames'] = handle_uploaded_file('upload/' + str(id) + '/',request.FILES['file'], request.FILES['file'].name)
+			context['filenames'], context['errors'] = handle_uploaded_file('upload/' + str(id) + '/',request.FILES['file'], request.FILES['file'].name)
 			
 		form = PictureForm()
 		context['form'] = form
@@ -69,6 +73,7 @@ def handle_uploaded_file(folder, file, filename):
 	filepath = folder + filename
 	pictures = []
 	returned = []
+	error = []
 
 	if not os.path.exists(folder + randFolder):
 		os.makedirs(folder + randFolder)
@@ -81,6 +86,10 @@ def handle_uploaded_file(folder, file, filename):
 		for chunk in file.chunks():
 			destination.write(chunk)
 		destination.close()
+		if zip_error(localTempPath):
+			error.append(filename + ' is not a valid zip file')
+			os.remove(localTempPath)
+			return returned, error
 
 		fh = open(localTempPath, 'rb')
 		z = zipfile.ZipFile(fh)
@@ -88,23 +97,62 @@ def handle_uploaded_file(folder, file, filename):
 			if not '/' in name:
 				outpath = folder + randFolder
 				z.extract(name, outpath)
-				pictures.append(folder + randFolder + name)
-				returned.append(name)
+				if imghdr.what(outpath + name) == None:
+					print(name + ' is not an image')
+					error.append(name + ' is not an image')
+					os.remove(outpath + name)
+				else:
+					pictures.append(outpath + name)
+					returned.append(name)
+			elif '__MACOSX' == name.split('/')[0]:
+				pass
+			elif '/' != name[-1]:
+				outpath = folder + randFolder
+				z.extract(name, outpath)
+				src = outpath + name
+				newname = name.replace('/', '_')
+				dst = outpath + newname
+				copyfile(src, dst)
+				rmtree(folder + randFolder + name.split('/')[0])
+
+				if imghdr.what(dst) == None:
+					print(newname + ' is not an image')
+					error.append(newname + ' is not an image')
+					os.remove(dst)
+				else:
+					pictures.append(outpath + newname)
+					returned.append(newname)
 		fh.close()
 		print("Zip extracted")
 		os.remove(localTempPath)
 	else:
 		write_file(localTempPath, file)
-		pictures.append(localTempPath)
-		returned = [filename]
+		if imghdr.what(localTempPath) == None:
+			print(filename + ' is not an image')
+			error.append(filename + ' is not an image')
+			os.remove(localTempPath)
+		else:
+			pictures.append(localTempPath)
+			returned = [filename]
 
 	threading.Thread(target=S3Utils.addPictures, args=[pictures]).start()
-	return returned
+	return returned, error
 
 def write_file(path, file):
 	with open(path, 'wb+') as destination:
 		for chunk in file.chunks():
 			destination.write(chunk)
+
+def zip_error(path):
+	try:
+		fh = open(path, 'rb')
+		z = zipfile.ZipFile(fh)
+		z.namelist()
+		fh.close()
+		return False
+	except:
+		print("Unexpected error:", sys.exc_info()[0])
+		return True
 
 def get_link():
 	random = randomString(20)

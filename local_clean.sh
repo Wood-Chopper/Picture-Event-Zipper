@@ -10,3 +10,4 @@ rm lambda/manager.zip
 rm .elasticbeanstalk/config.yml
 rmdir .elasticbeanstalk
 rm helloworld/settings.py
+rm -rf upload

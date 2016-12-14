@@ -26,7 +26,9 @@
 				<div class="well" style="text-center">
 					<form method='post' enctype="multipart/form-data">{% csrf_token %}
 						{{ form }}
-						<input type="submit">
+						Accepted files are zip, rgb, gif, pbm, pgm, ppm, tiff, xbm, jpeg, bmp and png<br>
+						<input type="submit"><br>
+						Your images will be resized to fit into the dimensions 2000x2000. 
 					</form>
 					{% if filenames %}
 					<div class="alert alert-success" role="alert">
@@ -34,6 +36,17 @@
 						<div style="max-height:calc(30%);border:1px solid #ccc;overflow:auto;">
 						{% for filename in filenames %}
 							<span>{{ filename }}</span><br>
+						{% endfor %}
+						</div>
+					</div>
+					{% endif %}
+
+					{% if errors %}
+					<div class="alert alert-danger" role="alert">
+						Files ignored :<br>
+						<div style="max-height:calc(30%);border:1px solid #ccc;overflow:auto;">
+						{% for error in errors %}
+							<span>{{ error }}</span><br>
 						{% endfor %}
 						</div>
 					</div>
