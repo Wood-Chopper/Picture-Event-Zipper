@@ -78,11 +78,26 @@ def sendArchive(listEventUpdated, listKeys, listMessages):
         chks = md5('/tmp/'+rd+'/' + archivename)
         zipper = zipfile.ZipFile('/tmp/'+rd+'/' + archivename, mode='a')
         for key in listKeys[i]:
-            tempPath = '/tmp/'+rd+'/'+key.split('/')[2]
-            print("downloading : " + key)
-            s3cli.download_file(bucket, key, tempPath)
-            if not key.split('/')[2] in zipper.namelist():
-                zipper.write(tempPath, key.split('/')[2])
+            spl = key.split('.')
+            ext = spl[len(spl)-1]
+            if ext == '.zip':
+                tempPath = '/tmp/'+rd+'/'+key.split('/')[2]
+                print("downloading : " + key)
+                s3cli.download_file(bucket, key, tempPath)
+                fh = open(tempPath, 'rb')
+                z = zipfile.ZipFile(fh)
+                for name in z.namelist():
+                    outpath = '/tmp/'+rd+'/'+name
+                    z.extract(name, outpath)
+                    zipper.write(outpath, name)
+                    zipManageDouble(zipper, outpath, name)
+                    os.remove(outpath)
+                z.close()
+            else:
+                tempPath = '/tmp/'+rd+'/'+key.split('/')[2]
+                print("downloading : " + key)
+                s3cli.download_file(bucket, key, tempPath)
+                zipManageDouble(zipper, tempPath, key.split('/')[2])
             os.remove(tempPath)
         zipper.close()
         
@@ -97,6 +112,14 @@ def sendArchive(listEventUpdated, listKeys, listMessages):
             print("Overlapping error")
             for message in listMessages[i]:
                 message.change_visibility(VisibilityTimeout=0)
+
+def zipManageDouble(zipper, path, name):
+    count = 0
+    tempName = name
+    while tempName in zipper.namelist():
+        count+=1
+        tempName = name + '-' + count
+    zipper.write(path, tempName)
         
 def get_archive_name(event):
     found = False

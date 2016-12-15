@@ -22,6 +22,7 @@ from shutil import copyfile
 from shutil import rmtree
 import imghdr
 import sys
+from subprocess import call
 
 @csrf_exempt
 def index(request):
@@ -93,6 +94,8 @@ def handle_uploaded_file(folder, file, filename):
 
 		fh = open(localTempPath, 'rb')
 		z = zipfile.ZipFile(fh)
+		newzippath = folder + randFolder + randomString(20) + '.zip'
+		newzip = zipfile.ZipFile(newzippath, mode='w')
 		for name in z.namelist():
 			if not '/' in name:
 				outpath = folder + randFolder
@@ -102,7 +105,9 @@ def handle_uploaded_file(folder, file, filename):
 					error.append(name + ' is not an image')
 					os.remove(outpath + name)
 				else:
-					pictures.append(outpath + name)
+					call(["convert", outpath + name, "-resize", "2000x2000>", outpath + name])
+					newzip.write(outpath + name, name)
+					os.remove(outpath + name)
 					returned.append(name)
 			elif '__MACOSX' == name.split('/')[0]:
 				pass
@@ -120,8 +125,12 @@ def handle_uploaded_file(folder, file, filename):
 					error.append(newname + ' is not an image')
 					os.remove(dst)
 				else:
-					pictures.append(outpath + newname)
+					call(["convert", dst, "-resize", "2000x2000>", dst])
+					newzip.write(dst, newname)
+					os.remove(dst)
 					returned.append(newname)
+		pictures.append(newzippath)
+		newzip.close()
 		fh.close()
 		print("Zip extracted")
 		os.remove(localTempPath)
@@ -132,6 +141,7 @@ def handle_uploaded_file(folder, file, filename):
 			error.append(filename + ' is not an image')
 			os.remove(localTempPath)
 		else:
+			call(["convert", localTempPath, "-resize", "2000x2000>", localTempPath])
 			pictures.append(localTempPath)
 			returned = [filename]
 

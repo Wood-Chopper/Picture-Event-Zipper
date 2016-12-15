@@ -122,3 +122,4 @@ aws iam attach-role-policy --role-name aws-elasticbeanstalk-ec2-role --policy-ar
 aws iam attach-role-policy --role-name aws-elasticbeanstalk-service-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 sleep 10
 eb open
+echo "please refresh the web page"

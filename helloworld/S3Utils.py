@@ -22,7 +22,6 @@ def printBuckets():
 
 def addPicture(localPath):
 	global uploaded
-	call(["convert", localPath, "-resize", "2000x2000>", localPath])
 	data = open(localPath, 'rb')
 	init_filename = localPath
 	localPath = localPath.replace(' ', '_')
