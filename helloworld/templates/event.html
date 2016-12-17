@@ -1,5 +1,5 @@
-<link rel="stylesheet" href="http://{{static}}.s3-website-{{region}}.amazonaws.com/bootstrap.css">
-<link rel="stylesheet" href="http://{{static}}.s3-website-{{region}}.amazonaws.com/pictureevent.css">
+<link rel="stylesheet" href="http://{{url_static}}/bootstrap.css">
+<link rel="stylesheet" href="http://{{url_static}}/pictureevent.css">
 
 <html>
   
@@ -10,7 +10,7 @@
   
   <body>
     <div class="cover">
-      <div class="cover-image" style="background-image: url(http://{{static}}.s3-website-{{region}}.amazonaws.com/eventimg.jpg);"></div>
+      <div class="cover-image" style="background-image: url(http://{{url_static}}/eventimg.jpg);"></div>
       <div class="container">
         <div class="row">
           <div class="col-md-12 text-center">
@@ -58,7 +58,7 @@
 		<div class="col-md-4"></div>
 			<div class="col-md-4">
 				{% for arch in archives %}
-					<a href='http://{{bucket_archives}}.s3-website-{{region}}.amazonaws.com/{{ arch }}'><button style="width:100%; background-color:gray; border-color:gray" class="btn btn-lg btn-primary" type="button">Download Zip {{ forloop.counter }}</button></a>
+					<a href='http://{{url_archives}}/{{ arch }}'><button style="width:100%; background-color:gray; border-color:gray" class="btn btn-lg btn-primary" type="button">Download Zip {{ forloop.counter }}</button></a>
 					<br/><br/>
 				{% endfor %}
 			</div>

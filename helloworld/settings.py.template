@@ -7,6 +7,8 @@ BUCKET_ARCHIVES = '[[BUCKET_ARCHIVES]]'
 BUCKET_IMAGES = '[[BUCKET_IMAGES]]'
 REGION = '[[REGION]]'
 BUCKET_STATIC = '[[BUCKET_STATIC]]'
+URL_STATIC = '[[URL_STATIC]]'
+URL_ARCHIVES = '[[URL_ARCHIVES]]'
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),

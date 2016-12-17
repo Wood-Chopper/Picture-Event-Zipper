@@ -7,6 +7,8 @@ SCHEDULE_PREFIX=np-$(openssl rand -hex 8)
 ACCOUNT_ID=$(aws ec2 describe-security-groups --group-names 'Default' --query 'SecurityGroups[0].OwnerId' --output text)
 REGION=$(aws configure get default.region)
 
+aws configure set preview.cloudfront true
+
 mkdir install
 echo $BUCKET_PREFIX > install/BUCKET_PREFIX
 echo $LAMBDA_PREFIX > install/LAMBDA_PREFIX
@@ -53,6 +55,19 @@ aws s3api put-bucket-policy --bucket $BUCKET_PREFIX-archives --policy file://jso
 aws s3api put-object --bucket $BUCKET_PREFIX-archives --key index.html --body s3archives/index.html --content-type text/html
 aws s3api put-bucket-website --bucket $BUCKET_PREFIX-archives --website-configuration file://json/s3archivesweb.json
 
+CDN_ARCHIVES_ID=$(aws cloudfront create-distribution \
+--origin-domain-name $BUCKET_PREFIX-archives.s3-website-$REGION.amazonaws.com \
+--output text --query Distribution.Id)
+URLARCHIVES=$(aws cloudfront get-distribution \
+--id $CDN_ARCHIVES_ID \
+--output text --query Distribution.DomainName)
+
+CDN_STATIC_ID=$(aws cloudfront create-distribution \
+--origin-domain-name $BUCKET_PREFIX-static.s3-website-$REGION.amazonaws.com \
+--output text --query Distribution.Id)
+URLSTATIC=$(aws cloudfront get-distribution \
+--id $CDN_STATIC_ID \
+--output text --query Distribution.DomainName)
 
 cat lambda/zippertemp.py | replace [[QUEUE]] \'$QUEUE\' | replace [[BUCKET_IMAGES]] \'$BUCKET_PREFIX-images\' | replace [[BUCKET_ARCHIVES]] \'$BUCKET_PREFIX-archives\' > lambda/zipper.py
 cd lambda
@@ -113,13 +128,41 @@ aws lambda add-permission --function-name manager-$LAMBDA_PREFIX \
 --action "lambda:*" \
 --principal "*"
 
-cat helloworld/settings.py.template | replace [[BUCKET_ARCHIVES]] $BUCKET_PREFIX-archives | replace [[BUCKET_IMAGES]] $BUCKET_PREFIX-images | replace [[REGION]] $REGION | replace [[BUCKET_STATIC]] $BUCKET_PREFIX-static > helloworld/settings.py
+cat helloworld/settings.py.template \
+| replace [[BUCKET_ARCHIVES]] $BUCKET_PREFIX-archives \
+| replace [[BUCKET_IMAGES]] $BUCKET_PREFIX-images \
+| replace [[REGION]] $REGION \
+| replace [[BUCKET_STATIC]] $BUCKET_PREFIX-static \
+| replace [[URL_STATIC]] $URLSTATIC \
+| replace [[URL_ARCHIVES]] $URLARCHIVES \
+> helloworld/settings.py
 
-eb init
-eb create group-a-env
+eb init -p python2.7
+eb create group-A
 eb deploy --staged
 aws iam attach-role-policy --role-name aws-elasticbeanstalk-ec2-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 aws iam attach-role-policy --role-name aws-elasticbeanstalk-service-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 sleep 10
+
+while [ "$STATUS" != "Deployed" ]
+do
+	sleep 60
+	STATUS=$(aws cloudfront get-distribution \
+			--id $CDN_ARCHIVES_ID \
+			--output text --query Distribution.Status)
+	echo $STATUS
+done
+
+STATUS="InProgress"
+while [ "$STATUS" != "Deployed" ]
+do
+	sleep 60
+	STATUS=$(aws cloudfront get-distribution \
+			--id $CDN_STATIC_ID \
+			--output text --query Distribution.Status)
+	echo $STATUS
+done
+
+
 eb open
-echo "please refresh the web page"
+echo "Please refresh the web page"

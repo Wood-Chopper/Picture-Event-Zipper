@@ -27,6 +27,8 @@ from subprocess import call
 @csrf_exempt
 def index(request):
 	context = {}
+	context['url_static'] = settings.URL_STATIC
+	context['url_archives'] = settings.URL_ARCHIVES
 	context['region'] = settings.REGION
 	context['static'] = settings.BUCKET_STATIC
 	if request.method == 'POST':
@@ -46,6 +48,8 @@ def event(request, id):
 	context['region'] = settings.REGION
 	context['static'] = settings.BUCKET_STATIC
 	context['bucket_archives'] = settings.BUCKET_ARCHIVES
+	context['url_static'] = settings.URL_STATIC
+	context['url_archives'] = settings.URL_ARCHIVES
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():

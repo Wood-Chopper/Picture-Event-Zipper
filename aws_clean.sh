@@ -37,4 +37,4 @@ rmdir install
 
 ./local_clean.sh
 
-aws elasticbeanstalk terminate-environment --environment-name group-a-env
+aws elasticbeanstalk terminate-environment --environment-name group-A
