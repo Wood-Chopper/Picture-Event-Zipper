@@ -44,10 +44,10 @@ def lambda_handler(event, context):
     queue = sqsres.get_queue_by_name(QueueName=queuename)
     queueMessages = int(queue.attributes['ApproximateNumberOfMessages'])
     print('queueMessages = ' + str(queueMessages))
-    if queueMessages > 200:
+    if queueMessages > 20:
         print("Addind a node")
         addNode()
-    elif queueMessages < 50 and lastLambda > 0:
+    elif queueMessages < 5 and lastLambda > 0:
         print("Removing a node")
         removeNode()
     

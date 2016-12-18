@@ -30,7 +30,7 @@ def lambda_handler(event, context):
     messages = queue.receive_messages(MaxNumberOfMessages=10)
     temp = queue.receive_messages(MaxNumberOfMessages=10)
     sizetot = get_size(temp)
-    while len(temp) > 0 and sizetot < 512000000/6 and len(messages)<200: # 512Mo/6 maximum pour ne pas saturer la memoire
+    while len(temp) > 0 and sizetot < 512000000/5 and len(messages)<50: # 512Mo/6 maximum pour ne pas saturer la memoire
         messages += temp
         temp = queue.receive_messages(MaxNumberOfMessages=10)
         sizetot += get_size(temp)
