@@ -61,6 +61,7 @@ CDN_ARCHIVES_ID=$(aws cloudfront create-distribution \
 URLARCHIVES=$(aws cloudfront get-distribution \
 --id $CDN_ARCHIVES_ID \
 --output text --query Distribution.DomainName)
+echo $CDN_ARCHIVES_ID > install/CDN_ARCHIVES_ID
 
 CDN_STATIC_ID=$(aws cloudfront create-distribution \
 --origin-domain-name $BUCKET_PREFIX-static.s3-website-$REGION.amazonaws.com \
@@ -68,6 +69,7 @@ CDN_STATIC_ID=$(aws cloudfront create-distribution \
 URLSTATIC=$(aws cloudfront get-distribution \
 --id $CDN_STATIC_ID \
 --output text --query Distribution.DomainName)
+echo $CDN_STATIC_ID > install/CDN_STATIC_ID
 
 cat lambda/zippertemp.py | replace [[QUEUE]] \'$QUEUE\' | replace [[BUCKET_IMAGES]] \'$BUCKET_PREFIX-images\' | replace [[BUCKET_ARCHIVES]] \'$BUCKET_PREFIX-archives\' > lambda/zipper.py
 cd lambda
@@ -140,6 +142,9 @@ cat helloworld/settings.py.template \
 eb init -p python2.7
 eb create group-A
 eb deploy --staged
+CNAME=$(aws elasticbeanstalk describe-environments --environment-names group-A --output text --query Environments[0].CNAME)
+echo $CNAME > install/CNAME
+
 aws iam attach-role-policy --role-name aws-elasticbeanstalk-ec2-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 aws iam attach-role-policy --role-name aws-elasticbeanstalk-service-role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 sleep 10
@@ -156,7 +161,7 @@ done
 STATUS="InProgress"
 while [ "$STATUS" != "Deployed" ]
 do
-	sleep 60
+	sleep 5
 	STATUS=$(aws cloudfront get-distribution \
 			--id $CDN_STATIC_ID \
 			--output text --query Distribution.Status)
@@ -164,5 +169,4 @@ do
 done
 
 
-eb open
-echo "Please refresh the web page"
+open http://$CNAME
