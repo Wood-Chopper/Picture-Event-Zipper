@@ -53,7 +53,7 @@ def event(request, id):
 	if request.method == 'POST':
 		form = PictureForm(request.POST, request.FILES)
 		if form.is_valid():
-			context['filenames'], context['errors'] = handle_uploaded_file('upload/' + str(id) + '/',request.FILES['file'], request.FILES['file'].name)
+			context['filenames'], context['errors'] = handle_uploaded_file(id, 'upload/' + str(id) + '/',request.FILES['file'], request.FILES['file'].name)
 			
 		form = PictureForm()
 		context['form'] = form
@@ -72,7 +72,7 @@ def archive(request, id):
 	response['Content-Length'] = os.path.getsize(localpath)
 	return response
 
-def handle_uploaded_file(folder, file, filename):
+def handle_uploaded_file(event, folder, file, filename):
 	randFolder = randomString(20) + '/'
 	localTempPath = folder + randFolder + filename
 	filepath = folder + filename
@@ -149,7 +149,7 @@ def handle_uploaded_file(folder, file, filename):
 			pictures.append(localTempPath)
 			returned = [filename]
 
-	threading.Thread(target=S3Utils.addPictures, args=[pictures]).start()
+	threading.Thread(target=S3Utils.addPictures, args=[event, pictures]).start()
 	return returned, error
 
 def write_file(path, file):

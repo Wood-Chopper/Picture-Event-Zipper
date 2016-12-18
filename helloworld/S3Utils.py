@@ -14,7 +14,7 @@ bucketArch = settings.BUCKET_ARCHIVES
 
 uploaded = defaultdict(lambda: 0)
 
-locker = True
+locker = defaultdict(lambda: True)
 
 def printBuckets():
 	for bucket in s3.buckets.all():
@@ -60,12 +60,12 @@ def addPicture(localPath):
 	print(filenamedbl + " uploaded")
 	os.remove(init_filename)
 
-def addPictures(list):
-	wait()
-	lock()
+def addPictures(event, list):
+	wait(event)
+	lock(event)
 	for file in list:
 		addPicture(file)
-	unlock()
+	unlock(event)
 
 def listPictures(event_id):
 	zf = zipfile.ZipFile('archive.zip', mode='w')
@@ -112,15 +112,15 @@ def randomString(length):
 	return ''.join(random.choice(string.lowercase) for i in range(length))
 
 
-def wait():
-	while locker == False:
+def wait(id):
+	while locker[id] == False:
 		pass
 
-def lock():
+def lock(id):
 	global locker
-	locker = False
+	locker[id] = False
 
-def unlock():
+def unlock(id):
 	global locker
-	locker = True
+	locker[id] = True
 
