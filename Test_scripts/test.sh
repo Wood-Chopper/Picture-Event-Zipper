@@ -6,7 +6,8 @@ do
 	mv $A.jpg test.jpg
 done
 
-for A in {1..10}
+for A in {1..50}
 do
+	sleep 60
 	./bot.sh &
 done
