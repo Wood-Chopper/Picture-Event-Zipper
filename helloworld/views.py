@@ -129,7 +129,7 @@ def handle_uploaded_file(event, folder, file, filename):
 					error.append(newname + ' is not an image')
 					os.remove(dst)
 				else:
-					#call(["convert", dst, "-resize", "2000x2000>", dst])
+					call(["convert", dst, "-resize", "2000x2000>", dst])
 					newzip.write(dst, newname)
 					os.remove(dst)
 					returned.append(newname)
