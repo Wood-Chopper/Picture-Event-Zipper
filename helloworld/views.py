@@ -138,6 +138,7 @@ def handle_uploaded_file(event, folder, file, filename):
 		fh.close()
 		print("Zip extracted")
 		os.remove(localTempPath)
+		S3Utils.addPicture(pictures[0])
 	else:
 		write_file(localTempPath, file)
 		if imghdr.what(localTempPath) == None:
@@ -148,8 +149,8 @@ def handle_uploaded_file(event, folder, file, filename):
 			call(["convert", localTempPath, "-resize", "2000x2000>", localTempPath])
 			pictures.append(localTempPath)
 			returned = [filename]
+		S3Utils.addPictures(event, pictures)
 
-	threading.Thread(target=S3Utils.addPictures, args=[event, pictures]).start()
 	return returned, error
 
 def write_file(path, file):

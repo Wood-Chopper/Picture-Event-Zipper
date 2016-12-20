@@ -1,0 +1,28 @@
+Début :
+
+Premier serveur vite saturé, -> S3 Limité par la débit d'un seul serveur
+
+Rapidement (après 1 minute), deuxième serveur démarre
+
+Après 7 minutes, serveur3 semble OK
+
+Pas de changement, toujours bridé entre Serveur1 => S3
+
+Après 9 minutes, Serveur 3 en démarrage et Serveur 2 montre des traces de calculs et utilisation du serveur 1 en diminution
+
+min 11, S3 semble OK
+
+min 12, semble toujours bridé entre Serv => S3, sans doute bcp d'envois en même temps, donc tjrs un unique zipper
+
+Le SQS ne reçois presque rien
+
+min 15 Serveur 2 s'éteind :/
+
+min 18 SQS reçoit un peut plus de messages (2 et plus 1 de temps en temps)
+
+min 19 3 messages dans SQS
+
+min 25 serveur 4
+
+
+EB est un modèle stateless...... => Merde
