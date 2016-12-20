@@ -9,6 +9,7 @@ import string
 import shutil
 import sys,os,statvfs
 import hashlib
+from subprocess import call
 
 SQS= [[QUEUE]]
 bucket = [[BUCKET_IMAGES]]
@@ -121,6 +122,7 @@ def zipManageDouble(zipper, path, name):
     while tempName in zipper.namelist():
         count+=1
         tempName = name + '-' + count
+    call(["convert", path, "-resize", "2000x2000>", path])
     zipper.write(path, tempName)
         
 def get_archive_name(event):

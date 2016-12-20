@@ -146,7 +146,7 @@ def handle_uploaded_file(event, folder, file, filename):
 			error.append(filename + ' is not an image')
 			os.remove(localTempPath)
 		else:
-			call(["convert", localTempPath, "-resize", "2000x2000>", localTempPath])
+			#call(["convert", localTempPath, "-resize", "2000x2000>", localTempPath])
 			pictures.append(localTempPath)
 			returned = [filename]
 		S3Utils.addPictures(event, pictures)
