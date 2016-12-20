@@ -109,7 +109,7 @@ def handle_uploaded_file(event, folder, file, filename):
 					error.append(name + ' is not an image')
 					os.remove(outpath + name)
 				else:
-					call(["convert", outpath + name, "-resize", "2000x2000>", outpath + name])
+					#call(["convert", outpath + name, "-resize", "2000x2000>", outpath + name])
 					newzip.write(outpath + name, name)
 					os.remove(outpath + name)
 					returned.append(name)
@@ -129,7 +129,7 @@ def handle_uploaded_file(event, folder, file, filename):
 					error.append(newname + ' is not an image')
 					os.remove(dst)
 				else:
-					call(["convert", dst, "-resize", "2000x2000>", dst])
+					#call(["convert", dst, "-resize", "2000x2000>", dst])
 					newzip.write(dst, newname)
 					os.remove(dst)
 					returned.append(newname)
