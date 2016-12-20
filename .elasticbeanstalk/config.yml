@@ -1,0 +1,10 @@
+branch-defaults:
+  master:
+    environment: group-A
+global:
+  application_name: PictureEvent
+  default_ec2_keyname: null
+  default_platform: python2.7
+  default_region: us-west-2
+  profile: null
+  sc: git

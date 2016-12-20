@@ -1,0 +1,7 @@
+{
+	"QueueConfiguration": {
+		"Id": "notif",
+		"Event": "s3:ObjectCreated:*",
+		"Queue": "arn:aws:sqs:us-west-2:459293086294:np-1b0bb25740e11871"
+	}
+}
