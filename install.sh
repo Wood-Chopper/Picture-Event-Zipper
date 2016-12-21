@@ -44,9 +44,6 @@ aws sqs set-queue-attributes \
 --attributes file://json/sqspol.json
 cat json/s3imagespoltemp.json | replace BUCKETNAME $BUCKET_PREFIX-images | replace ACCOUNT_ID $ACCOUNT_ID | replace LAMBDA_ROLE $LAMBDA_ROLE-lambda > json/s3imagespol.json 
 aws s3api put-bucket-policy --bucket $BUCKET_PREFIX-images --policy file://json/s3imagespol.json
-cat json/s3notiftemp.json | replace REGION $REGION | replace ACCOUNT_ID $ACCOUNT_ID | replace SQS $QUEUE > json/s3notif.json 
-aws s3api put-bucket-notification --bucket $BUCKET_PREFIX-images \
---notification-configuration file://json/s3notif.json
 
 
 aws s3api create-bucket --bucket $BUCKET_PREFIX-archives --create-bucket-configuration LocationConstraint=$REGION
@@ -81,9 +78,15 @@ cd lambda
 zip manager.zip manager.py
 cd ..
 
+cat lambda/resizertemp.py | replace [[BUCKET_IMAGES]] \'$BUCKET_PREFIX-images\' > lambda/resizer.py
+cd lambda
+zip resizer.zip resizer.py
+cd ..
+
 aws s3api create-bucket --bucket $BUCKET_PREFIX-lambda --create-bucket-configuration LocationConstraint=$REGION
 aws s3api put-object --bucket $BUCKET_PREFIX-lambda --key zipper.zip --body lambda/zipper.zip
 aws s3api put-object --bucket $BUCKET_PREFIX-lambda --key manager.zip --body lambda/manager.zip
+aws s3api put-object --bucket $BUCKET_PREFIX-lambda --key resizer.zip --body lambda/resizer.zip
 
 aws lambda create-function \
 --function-name $LAMBDA_PREFIX \
@@ -129,6 +132,21 @@ aws lambda add-permission --function-name manager-$LAMBDA_PREFIX \
 --statement-id Trigger \
 --action "lambda:*" \
 --principal "*"
+
+aws lambda create-function \
+--function-name resizer-$LAMBDA_PREFIX \
+--runtime 'python2.7' \
+--role arn:aws:iam::$ACCOUNT_ID:role/$LAMBDA_ROLE-lambda \
+--handler resizer.lambda_handler \
+--code S3Bucket=$BUCKET_PREFIX-lambda,S3Key=resizer.zip \
+--timeout 300 \
+--memory-size 128
+
+cat json/s3notiftemp.json | replace REGION $REGION | replace ACCOUNT_ID $ACCOUNT_ID | replace SQS $QUEUE | replace RESIZER_NAME resizer-$LAMBDA_PREFIX > json/s3notif.json 
+aws s3api put-bucket-notification --bucket $BUCKET_PREFIX-images \
+--notification-configuration file://json/s3notif.json
+
+
 
 cat helloworld/settings.py.template \
 | replace [[BUCKET_ARCHIVES]] $BUCKET_PREFIX-archives \

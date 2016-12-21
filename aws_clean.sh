@@ -28,6 +28,7 @@ aws s3api delete-bucket --bucket $BUCKET_PREFIX-lambda
 aws sqs delete-queue --queue-url https://sqs.$REGION.amazonaws.com/$ACCOUNT_ID/$QUEUE
 aws lambda delete-function --function-name $LAMBDA_PREFIX
 aws lambda delete-function --function-name manager-$LAMBDA_PREFIX
+aws lambda delete-function --function-name resizer-$LAMBDA_PREFIX
 
 aws events remove-targets --rule $SCHEDULE_PREFIX --ids Invoke-0
 aws events remove-targets --rule manager$SCHEDULE_PREFIX --ids Invoke-manager

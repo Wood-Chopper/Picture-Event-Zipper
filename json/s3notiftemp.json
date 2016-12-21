@@ -2,6 +2,34 @@
 	"QueueConfiguration": {
 		"Id": "notif",
 		"Event": "s3:ObjectCreated:*",
-		"Queue": "arn:aws:sqs:REGION:ACCOUNT_ID:SQS"
-	}
+		"Queue": "arn:aws:sqs:REGION:ACCOUNT_ID:SQS",
+		"Filter": {
+			"Key": {
+				"FilterRules": [
+					{
+						"Name": "prefix",
+						"Value": "resized/"
+					}
+				]
+			}
+		}
+	},
+	"LambdaFunctionConfigurations": [
+		{
+			"LambdaFunctionArn": "arn:aws:lambda:REGION:ACCOUNT_ID:function:RESIZER_NAME",
+			"Events": [
+				"s3:ObjectCreated:*"
+			],
+			"Filter": {
+				"Key": {
+					"FilterRules": [
+						{
+							"Name": "prefix",
+							"Value": "upload/"
+						}
+					]
+				}
+			}
+		}
+	]
 }

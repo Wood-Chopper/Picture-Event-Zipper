@@ -39,7 +39,8 @@ def lambda_handler(event, context):
             sizetot += get_size(temp)
         else:
             pull_again=False
-            temp[0].change_visibility(VisibilityTimeout=0)
+            if len(temp) == 1:
+                temp[0].change_visibility(VisibilityTimeout=0)
 
     print("size " + str(sizetot))
     print(str(len(messages)) + " pulled")
@@ -91,16 +92,16 @@ def sendArchive(listEventUpdated, listKeys, listMessages, eventSizes):
         for key in listKeys[i]:
             spl = key.split('.')
             ext = spl[len(spl)-1]
-            if ext == '.zip':
+            if ext == 'zip':
                 tempPath = '/tmp/'+rd+'/'+key.split('/')[2]
                 print("downloading : " + key)
                 s3cli.download_file(bucket, key, tempPath)
                 fh = open(tempPath, 'rb')
                 z = zipfile.ZipFile(fh)
                 for name in z.namelist():
+                    print('1')
                     outpath = '/tmp/'+rd+'/'+name
-                    z.extract(name, outpath)
-                    zipper.write(outpath, name)
+                    z.extract(name, '/tmp/'+rd+'/')
                     zipManageDouble(zipper, outpath, name)
                     os.remove(outpath)
                 z.close()
@@ -130,7 +131,7 @@ def zipManageDouble(zipper, path, name):
     while tempName in zipper.namelist():
         count+=1
         tempName = name + '-' + count
-    call(["convert", path, "-resize", "2000x2000>", path])
+    #call(["convert", path, "-resize", "2000x2000>", path])
     zipper.write(path, tempName)
         
 def get_archive_name(event, sizeToAdd):

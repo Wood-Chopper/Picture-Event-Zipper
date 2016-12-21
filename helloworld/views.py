@@ -85,19 +85,20 @@ def handle_uploaded_file(event, folder, file, filename):
 
 	spl = filename.split('.')
 	ext = spl[len(spl)-1]
-	size = os.path.getsize(localTempPath)
 
-	if size > 100000000:
-		error.append(filename + ' is too big ('+ size/1000 +' KB)')
-		os.remove(localTempPath)
-		return returned, error
-	elif ext == 'zip':
+	if ext == 'zip':
+		
 		destination = open(localTempPath, 'wb+')
 		for chunk in file.chunks():
 			destination.write(chunk)
 		destination.close()
+		size = os.path.getsize(localTempPath)
 		if zip_error(localTempPath):
 			error.append(filename + ' is not a valid zip file')
+			os.remove(localTempPath)
+			return returned, error
+		elif size > 100000000:
+			error.append(filename + ' is too big ('+ str(size/1000) +' KB)')
 			os.remove(localTempPath)
 			return returned, error
 
@@ -146,10 +147,15 @@ def handle_uploaded_file(event, folder, file, filename):
 		S3Utils.addPicture(pictures[0])
 	else:
 		write_file(localTempPath, file)
+		size = os.path.getsize(localTempPath)
 		if imghdr.what(localTempPath) == None:
 			print(filename + ' is not an image')
 			error.append(filename + ' is not an image')
 			os.remove(localTempPath)
+		elif size > 100000000:
+			error.append(filename + ' is too big ('+ str(size/1000) +' KB)')
+			os.remove(localTempPath)
+			return returned, error
 		else:
 			#call(["convert", localTempPath, "-resize", "2000x2000>", localTempPath])
 			pictures.append(localTempPath)
