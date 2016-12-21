@@ -140,7 +140,7 @@ def handle_uploaded_file(event, folder, file, filename):
 		print("Zip extracted")
 		os.remove(localTempPath)
 		try:
-			S3Utils.addPictures(pictures)
+			S3Utils.addPictures(event, pictures)
 			print("Files sended")
 		except:
 			print("ERREUR LORS DE L'UPLOAD")

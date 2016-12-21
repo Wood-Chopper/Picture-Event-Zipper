@@ -44,19 +44,14 @@ def lambda_handler(event, context):
     return None
 
 def resize_send(path, name, id):
-    call(["convert", path, "-resize", "2000x2000>", path])
     keys = []
     for a in s3res.Bucket(bucket).objects.all():
         keys.append(a.key)
-    count = 0
-    tempName = name
-    while 'resized/'+id + '/' + tempName in keys:
-        count+=1
-        tempName = name + '-' + count
-        tempName = name.rsplit('.', 1)[0] + '-' + str(count) + name.rsplit('.', 1)[1]
-    data = open(path, 'rb')
-    s3res.Bucket(bucket).put_object(Key='resized/'+id + '/' + tempName, Body=data)
-    print(tempName + ' resized')
+    if not 'resized/'+id + '/' + name in keys:
+        call(["convert", path, "-resize", "2000x2000>", path])
+        data = open(path, 'rb')
+        s3res.Bucket(bucket).put_object(Key='resized/'+id + '/' + tempName, Body=data)
+        print(tempName + ' resized')
 
     
 def exists(bucket, key):

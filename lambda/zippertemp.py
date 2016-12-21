@@ -29,11 +29,11 @@ def lambda_handler(event, context):
     print_disk_info()
     clear_tmp()
 
-    messages = queue.receive_messages(MaxNumberOfMessages=1)
+    messages = queue.receive_messages(MaxNumberOfMessages=10)
     sizetot = get_size(messages)
     pull_again=True
     while pull_again:
-        temp = queue.receive_messages(MaxNumberOfMessages=1)
+        temp = queue.receive_messages(MaxNumberOfMessages=10)
         if get_size(temp)+sizetot < 100000000 and len(messages)+1<=50 and len(messages)>0 :
             messages+=temp
             sizetot += get_size(temp)
@@ -125,13 +125,8 @@ def sendArchive(listEventUpdated, listKeys, listMessages, eventSizes):
                 message.change_visibility(VisibilityTimeout=0)
 
 def zipManageDouble(zipper, path, name):
-    count = 0
-    tempName = name
-    while tempName in zipper.namelist():
-        count+=1
-        tempName = name.rsplit('.', 1)[0] + '-' + str(count) + name.rsplit('.', 1)[1]
-    #call(["convert", path, "-resize", "2000x2000>", path])
-    zipper.write(path, tempName)
+    if not name in zipper.namelist():
+        zipper.write(path, name)
         
 def get_archive_name(event, sizeToAdd):
     found = False
