@@ -14,7 +14,7 @@
 			}
 		}
 	},
-	"LambdaFunctionConfigurations": [
+	"CloudFunctionConfiguration": [
 		{
 			"LambdaFunctionArn": "arn:aws:lambda:REGION:ACCOUNT_ID:function:RESIZER_NAME",
 			"Events": [
