@@ -50,8 +50,8 @@ def resize_send(path, name, id):
     if not 'resized/'+id + '/' + name in keys:
         call(["convert", path, "-resize", "2000x2000>", path])
         data = open(path, 'rb')
-        s3res.Bucket(bucket).put_object(Key='resized/'+id + '/' + tempName, Body=data)
-        print(tempName + ' resized')
+        s3res.Bucket(bucket).put_object(Key='resized/'+id + '/' + name, Body=data)
+        print(name + ' resized')
 
     
 def exists(bucket, key):

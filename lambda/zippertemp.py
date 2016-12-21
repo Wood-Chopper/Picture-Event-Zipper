@@ -31,16 +31,6 @@ def lambda_handler(event, context):
 
     messages = queue.receive_messages(MaxNumberOfMessages=10)
     sizetot = get_size(messages)
-    pull_again=True
-    while pull_again:
-        temp = queue.receive_messages(MaxNumberOfMessages=10)
-        if get_size(temp)+sizetot < 100000000 and len(messages)+1<=50 and len(messages)>0 :
-            messages+=temp
-            sizetot += get_size(temp)
-        else:
-            pull_again=False
-            if len(temp) == 1:
-                temp[0].change_visibility(VisibilityTimeout=0)
 
     print("size " + str(sizetot))
     print(str(len(messages)) + " pulled")
