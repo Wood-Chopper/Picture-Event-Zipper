@@ -51,7 +51,6 @@ def lambda_handler(event, context):
     for message in messages:
         parsed = json.loads(message.body)
         if 'Records' in parsed:
-            message.change_visibility(VisibilityTimeout=60)
             key = parsed['Records'][0]['s3']['object']['key']
             addFileToArch(message, key, listEventUpdated, listKeys, listMessages)
             eventSizes[key.split('/')[1]]+=parsed['Records'][0]['s3']['object']['size']
@@ -130,7 +129,7 @@ def zipManageDouble(zipper, path, name):
     tempName = name
     while tempName in zipper.namelist():
         count+=1
-        tempName = name + '-' + count
+        tempName = name.rsplit('.', 1)[0] + '-' + str(count) + name.rsplit('.', 1)[1]
     #call(["convert", path, "-resize", "2000x2000>", path])
     zipper.write(path, tempName)
         

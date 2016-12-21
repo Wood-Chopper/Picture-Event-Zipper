@@ -23,20 +23,22 @@ def lambda_handler(event, context):
     if 'Records' in event:
         key = urllib.unquote_plus(event['Records'][0]['s3']['object']['key'].encode('utf8'))
         tempPath = '/tmp/'+rd+'/'+key.split('/')[2]
+        os.makedirs('/tmp/'+rd)
         s3cli.download_file(bucket, key, tempPath)
         id = key.split('/')[1]
         spl = key.split('.')
-            ext = spl[len(spl)-1]
+        ext = spl[len(spl)-1]
         if ext=='zip':
             fh = open(tempPath, 'rb')
-                z = zipfile.ZipFile(fh)
-                for name in z.namelist():
-                    outpath = '/tmp/'+rd+'/'+name
-                    z.extract(name, '/tmp/'+rd+'/')
-                    resize_send(outpath, name, id)
-                    os.remove(outpath)
-                z.close()
+            z = zipfile.ZipFile(fh)
+            for name in z.namelist():
+                outpath = '/tmp/'+rd+'/'+name
+                z.extract(name, '/tmp/'+rd+'/')
+                resize_send(outpath, name, id)
+                os.remove(outpath)
+            z.close()
         else:
+            name = key.split('/')[2]
             resize_send(tempPath, name, id)
         os.remove(tempPath)
     return None
@@ -48,11 +50,13 @@ def resize_send(path, name, id):
         keys.append(a.key)
     count = 0
     tempName = name
-    while tempName in keys:
+    while 'resized/'+id + '/' + tempName in keys:
         count+=1
         tempName = name + '-' + count
+        tempName = name.rsplit('.', 1)[0] + '-' + str(count) + name.rsplit('.', 1)[1]
     data = open(path, 'rb')
     s3res.Bucket(bucket).put_object(Key='resized/'+id + '/' + tempName, Body=data)
+    print(tempName + ' resized')
 
     
 def exists(bucket, key):

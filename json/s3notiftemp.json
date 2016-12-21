@@ -1,23 +1,26 @@
 {
-	"QueueConfiguration": {
-		"Id": "notif",
-		"Event": "s3:ObjectCreated:*",
-		"Queue": "arn:aws:sqs:REGION:ACCOUNT_ID:SQS",
-		"Filter": {
-			"Key": {
-				"FilterRules": [
-					{
-						"Name": "prefix",
-						"Value": "resized/"
-					}
-				]
+	"QueueConfigurations": [
+		{
+			"Id": "toZipper",
+			"Events": ["s3:ObjectCreated:*"],
+			"QueueArn": "arn:aws:sqs:REGION:ACCOUNT_ID:SQS",
+			"Filter": {
+				"Key": {
+					"FilterRules": [
+						{
+							"Name": "prefix",
+							"Value": "resized/"
+						}
+					]
+				}
 			}
 		}
-	},
-	"CloudFunctionConfiguration": [
+	],
+	"LambdaFunctionConfigurations": [
 		{
+			"Id": "toResizer",
 			"LambdaFunctionArn": "arn:aws:lambda:REGION:ACCOUNT_ID:function:RESIZER_NAME",
-			"Event": "s3:ObjectCreated:*",
+			"Events": ["s3:ObjectCreated:*"],
 			"Filter": {
 				"Key": {
 					"FilterRules": [

@@ -105,7 +105,6 @@ def handle_uploaded_file(event, folder, file, filename):
 		fh = open(localTempPath, 'rb')
 		z = zipfile.ZipFile(fh)
 		newzippath = folder + randFolder + randomString(20) + '.zip'
-		newzip = zipfile.ZipFile(newzippath, mode='w')
 		for name in z.namelist():
 			if not '/' in name:
 				outpath = folder + randFolder
@@ -116,8 +115,7 @@ def handle_uploaded_file(event, folder, file, filename):
 					os.remove(outpath + name)
 				else:
 					#call(["convert", outpath + name, "-resize", "2000x2000>", outpath + name])
-					newzip.write(outpath + name, name)
-					os.remove(outpath + name)
+					pictures.append(outpath + name)
 					returned.append(name)
 			elif '__MACOSX' == name.split('/')[0]:
 				pass
@@ -136,15 +134,18 @@ def handle_uploaded_file(event, folder, file, filename):
 					os.remove(dst)
 				else:
 					#call(["convert", dst, "-resize", "2000x2000>", dst])
-					newzip.write(dst, newname)
-					os.remove(dst)
+					pictures.append(dst)
 					returned.append(newname)
-		pictures.append(newzippath)
-		newzip.close()
 		fh.close()
 		print("Zip extracted")
 		os.remove(localTempPath)
-		S3Utils.addPicture(pictures[0])
+		try:
+			S3Utils.addPictures(pictures)
+			print("Files sended")
+		except:
+			print("ERREUR LORS DE L'UPLOAD")
+			raise
+			return [], ["ERREUR LORS DE L'UPLOAD"]
 	else:
 		write_file(localTempPath, file)
 		size = os.path.getsize(localTempPath)
@@ -160,7 +161,12 @@ def handle_uploaded_file(event, folder, file, filename):
 			#call(["convert", localTempPath, "-resize", "2000x2000>", localTempPath])
 			pictures.append(localTempPath)
 			returned = [filename]
-		S3Utils.addPictures(event, pictures)
+		try:
+			S3Utils.addPictures(event, pictures)
+		except:
+			print("ERREUR LORS DE L'UPLOAD")
+			raise
+			return [], ["ERREUR LORS DE L'UPLOAD"]
 
 	return returned, error
 
