@@ -10,6 +10,7 @@ import shutil
 import sys,os,statvfs
 import hashlib
 from subprocess import call
+from collections import defaultdict
 
 SQS= [[QUEUE]]
 bucket = [[BUCKET_IMAGES]]
@@ -27,28 +28,35 @@ s3cli = boto3.client('s3')
 def lambda_handler(event, context):
     print_disk_info()
     clear_tmp()
-    
-    messages = queue.receive_messages(MaxNumberOfMessages=10)
-    temp = queue.receive_messages(MaxNumberOfMessages=10)
-    sizetot = get_size(temp)
-    while len(temp) > 0 and sizetot < 512000000/5 and len(messages)<50: # 512Mo/6 maximum pour ne pas saturer la memoire
-        messages += temp
-        temp = queue.receive_messages(MaxNumberOfMessages=10)
-        sizetot += get_size(temp)
+
+    messages = queue.receive_messages(MaxNumberOfMessages=1)
+    sizetot = get_size(messages)
+    pull_again=True
+    while pull_again:
+        temp = queue.receive_messages(MaxNumberOfMessages=1)
+        if get_size(temp)+sizetot < 100000000 and len(messages)+1<=50 and len(messages)>0 :
+            messages+=temp
+            sizetot += get_size(temp)
+        else:
+            pull_again=False
+            temp[0].change_visibility(VisibilityTimeout=0)
+
     print("size " + str(sizetot))
     print(str(len(messages)) + " pulled")
     listEventUpdated = []
     listKeys = []
     listMessages = []
+    eventSizes = defaultdict(lambda: 0)
     for message in messages:
         parsed = json.loads(message.body)
         if 'Records' in parsed:
             message.change_visibility(VisibilityTimeout=60)
             key = parsed['Records'][0]['s3']['object']['key']
             addFileToArch(message, key, listEventUpdated, listKeys, listMessages)
+            eventSizes[key.split('/')[1]]+=parsed['Records'][0]['s3']['object']['size']
         else:
             message.delete()
-    sendArchive(listEventUpdated, listKeys, listMessages)
+    sendArchive(listEventUpdated, listKeys, listMessages, eventSizes)
     return None
     
 def get_size(messages):
@@ -69,13 +77,13 @@ def addFileToArch(message, key, listEvent, listKeys, listMessages):
     listKeys[indexEvent].append(key)
     listMessages[indexEvent].append(message)
     
-def sendArchive(listEventUpdated, listKeys, listMessages):
+def sendArchive(listEventUpdated, listKeys, listMessages, eventSizes):
         
     for i in range (0, len(listEventUpdated)):
         event = listEventUpdated[i]
         rd=randomString(20)
         os.makedirs('/tmp/'+rd)
-        archivename = get_archive_name(event)
+        archivename = get_archive_name(event, eventSizes[event])
         print('downloading : archives/'+event+'/' + archivename)
         s3cli.download_file(bucketArch, 'archives/'+event+'/' + archivename, '/tmp/'+rd+'/' + archivename)
         chks = md5('/tmp/'+rd+'/' + archivename)
@@ -125,7 +133,7 @@ def zipManageDouble(zipper, path, name):
     call(["convert", path, "-resize", "2000x2000>", path])
     zipper.write(path, tempName)
         
-def get_archive_name(event):
+def get_archive_name(event, sizeToAdd):
     found = False
     i=0
     while not found:
@@ -135,7 +143,7 @@ def get_archive_name(event):
     filename = 'archive-' + str(i-1) + '.zip'
     obj = s3res.ObjectSummary(bucketArch, 'archives/'+event + '/' + filename)
     size = obj.size;
-    if size > 512000000-512000000/3:
+    if size + sizeToAdd > 500000000:
         filename = 'archive-'+str(i)+'.zip'
         rd = '/tmp/' + randomString(20) + '/'
         os.makedirs(rd)

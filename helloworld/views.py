@@ -85,8 +85,13 @@ def handle_uploaded_file(event, folder, file, filename):
 
 	spl = filename.split('.')
 	ext = spl[len(spl)-1]
+	size = os.path.getsize(localTempPath)
 
-	if ext == 'zip':
+	if size > 100000000:
+		error.append(filename + ' is too big ('+ size/1000 +' KB)')
+		os.remove(localTempPath)
+		return returned, error
+	elif ext == 'zip':
 		destination = open(localTempPath, 'wb+')
 		for chunk in file.chunks():
 			destination.write(chunk)

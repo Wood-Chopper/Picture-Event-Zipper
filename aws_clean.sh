@@ -6,6 +6,8 @@ LAMBDA_ROLE=$(cat install/LAMBDA_ROLE)
 SCHEDULE_PREFIX=$(cat install/SCHEDULE_PREFIX)
 REGION=$(cat install/REGION)
 ACCOUNT_ID=$(cat install/ACCOUNT_ID)
+CDN_STATIC=$(cat install/CDN_STATIC_ID)
+CDN_ARCHIVES=$(cat install/CDN_ARCHIVES_ID)
 
 aws iam detach-role-policy --role-name $LAMBDA_ROLE-lambda --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 aws iam detach-role-policy --role-name $LAMBDA_ROLE-lambda --policy-arn arn:aws:iam::aws:policy/AmazonSQSFullAccess
@@ -38,3 +40,5 @@ rmdir install
 ./local_clean.sh
 
 aws elasticbeanstalk terminate-environment --environment-name group-A
+
+echo "Do not forget to disable and delete the two CloudFront distribution $CDN_STATIC and $CDN_ARCHIVES "
