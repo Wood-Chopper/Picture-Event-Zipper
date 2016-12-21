@@ -17,9 +17,7 @@
 	"CloudFunctionConfiguration": [
 		{
 			"LambdaFunctionArn": "arn:aws:lambda:REGION:ACCOUNT_ID:function:RESIZER_NAME",
-			"Events": [
-				"s3:ObjectCreated:*"
-			],
+			"Event": "s3:ObjectCreated:*",
 			"Filter": {
 				"Key": {
 					"FilterRules": [

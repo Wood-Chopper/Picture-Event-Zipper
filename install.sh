@@ -143,7 +143,7 @@ aws lambda create-function \
 --memory-size 128
 
 cat json/s3notiftemp.json | replace REGION $REGION | replace ACCOUNT_ID $ACCOUNT_ID | replace SQS $QUEUE | replace RESIZER_NAME resizer-$LAMBDA_PREFIX > json/s3notif.json 
-aws s3api put-bucket-notification --bucket $BUCKET_PREFIX-images \
+aws s3api put-bucket-notification-configuration --bucket $BUCKET_PREFIX-images \
 --notification-configuration file://json/s3notif.json
 
 
