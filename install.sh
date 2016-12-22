@@ -140,7 +140,7 @@ aws lambda create-function \
 --handler resizer.lambda_handler \
 --code S3Bucket=$BUCKET_PREFIX-lambda,S3Key=resizer.zip \
 --timeout 300 \
---memory-size 1536
+--memory-size 512
 
 aws lambda add-permission --function-name resizer-$LAMBDA_PREFIX \
 --statement-id Notif \
