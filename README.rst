@@ -1,37 +1,12 @@
-Picture Event
-==========
+To run the application, you must have awscli and awsebcli installed. awscli must be configured.
 
-For run this app need to install Django framework and the requirements.
-Execute the follow command::
+Simply execute
+$./install.sh
+in the root of the project.
 
-    $ sudo pip install -r requirements.txt
+Normally, the installation takes approximately 20 to 30 minutes. Sometimes, the CloudFront take more time to be fully deployed.
+When the application is fully deployed and that the CDN are ready, the application automatically launch to the default browser.
 
-And later followed by::
-
-    $ python manage.py migrate
-
-After which you can run::
-
-    $ python manage.py runserver
-
-And open the following URL in your web browser:
-
- - http://127.0.0.1:8000/
-
-- Créer les 3 Buckets S3
-
-- Mettre les ressources dans le S3 static
-
-- Créer le SQS
-
-- Créer un role pour le Lambda
-
-- Créer la lambda avec son trigger
-
-- Modifier les 2 roles IAM pour EB
-
-- Modifier policies S3 images et archives
-
-- Modifier les variables globales du Django
-
-- Déployer l'app avec awsebcli
+To unistall the application, execute
+$./aws\_clean.sh
+in the root of the project.
