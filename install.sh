@@ -140,7 +140,7 @@ aws lambda create-function \
 --handler resizer.lambda_handler \
 --code S3Bucket=$BUCKET_PREFIX-lambda,S3Key=resizer.zip \
 --timeout 300 \
---memory-size 128
+--memory-size 1536
 
 aws lambda add-permission --function-name resizer-$LAMBDA_PREFIX \
 --statement-id Notif \
@@ -178,7 +178,7 @@ do
 	STATUS=$(aws cloudfront get-distribution \
 			--id $CDN_ARCHIVES_ID \
 			--output text --query Distribution.Status)
-	echo $STATUS
+	echo "The status of the CDN depoyement is : $STATUS"
 done
 
 STATUS="InProgress"
@@ -188,7 +188,7 @@ do
 	STATUS=$(aws cloudfront get-distribution \
 			--id $CDN_STATIC_ID \
 			--output text --query Distribution.Status)
-	echo $STATUS
+	echo "The status of the CDN depoyement is : $STATUS"
 done
 
 

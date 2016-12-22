@@ -38,13 +38,13 @@ def get_last_Lambda():
     print(max)
     return max
 
-lastLambda=get_last_Lambda()
-
 def lambda_handler(event, context):
+    global lastLambda
+    lastLambda=get_last_Lambda()
     queue = sqsres.get_queue_by_name(QueueName=queuename)
     queueMessages = int(queue.attributes['ApproximateNumberOfMessages'])
     print('queueMessages = ' + str(queueMessages))
-    if queueMessages > 50:
+    if queueMessages > 30:
         print("Addind a node")
         addNode()
     elif queueMessages < 10 and lastLambda > 0:
