@@ -1,5 +1,5 @@
 
-for A in {1..50}
+for A in {1..47}
 do
 	mv test.jpg $A.jpg
 	zip test.zip $A.jpg
