@@ -1,0 +1,6 @@
+Running application
+http://group-a.ejfypek8ps.us-west-2.elasticbeanstalk.com/
+
+Github
+https://github.com/gg0512/PictureEvent---Cloud-Project-2
+The last commit is made before the deadline
