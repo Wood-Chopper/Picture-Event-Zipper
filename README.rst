@@ -17,3 +17,6 @@ To unistall the application, execute
   $./aws\_clean.sh
 
 in the root of the project.
+
+![alt tag](https://raw.githubusercontent.com/gg0512/PictureEvent---Cloud-Project-2/master/pics/Arch.png)
+
