@@ -1,6 +1,6 @@
 ## Synopsis
 
-An application that allows any user to create an event and share the link of the event to his friends. Each user with the link can add pictures and download the archive containing all the images of the event.
+An application that allows any user to create an event and share the link of this event to his friends. Each user with the link can add pictures and download the archive containing all the images of the event.
 
 The application run in the AWS cloud and is fully scalable.
 
