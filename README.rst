@@ -1,8 +1,10 @@
+For more information about the projetct, see the file Cloud_P2.pdf
+
 To run the application, you must have awscli and awsebcli installed. awscli must be configured.
 
 Simply execute
 
-$./install.sh
+  $./install.sh
 
 in the root of the project.
 
