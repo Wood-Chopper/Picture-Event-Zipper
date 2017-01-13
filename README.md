@@ -7,7 +7,7 @@ To run the application, you must have awscli and awsebcli installed. awscli must
 
 Simply execute
 
-  $./install.sh
+    $./install.sh
 
 in the root of the project.
 
@@ -15,9 +15,11 @@ Normally, the installation takes approximately 20 to 30 minutes. Sometimes, the 
 
 When the application is fully deployed and that the CDN are ready, the application automatically launch to the default browser.
 
+## Uninstallation
+
 To unistall the application, execute
 
-  $./aws\_clean.sh
+    $./aws\_clean.sh
 
 in the root of the project.
 
