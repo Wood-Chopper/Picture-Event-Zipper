@@ -18,5 +18,5 @@ To unistall the application, execute
 
 in the root of the project.
 
-![alt tag](https://raw.githubusercontent.com/gg0512/PictureEvent---Cloud-Project-2/master/pics/Arch.png)
+![alt tag](/pics/Arch.png?raw=true "Architecture")
 
