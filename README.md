@@ -24,7 +24,7 @@ When the application is fully deployed and that the CDN are ready, the applicati
 
 To unistall the application, execute
 
-    $./aws\_clean.sh
+    $./aws_clean.sh
 
 in the root of the project.
 
