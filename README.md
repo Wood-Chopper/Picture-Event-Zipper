@@ -1,4 +1,4 @@
-## Synopsis
+# Picture Event Zipper
 
 An application that allows any user to create an event and share the link of this event to his friends. Each user with the link can add pictures and download the archive containing all the images of the event.
 
